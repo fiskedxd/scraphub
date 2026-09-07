@@ -19,7 +19,6 @@ const PublicProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [spotifyData, setSpotifyData] = useState(null);
-  const videoRef = useRef(null);
 
   const publicProfile = profile?.publicProfile || {};
   const previewName = publicProfile.displayName || profile?.name || profile?.email;
@@ -82,29 +81,6 @@ const PublicProfilePage = () => {
 
     fetchSpotifyData();
   }, [profile, username]);
-
-  // Effet pour lancer la vidéo automatiquement
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
-
-    const startVideo = async () => {
-      try {
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.currentTime = 0;
-        // Lancement automatique sans attendre d'interaction
-        await video.play();
-      } catch (error) {
-        console.warn('Impossible de démarrer la vidéo d\'arrière-plan:', error);
-      }
-    };
-
-    // Petit délai pour s'assurer que la vidéo est chargée
-    const timeoutId = setTimeout(startVideo, 100);
-    return () => clearTimeout(timeoutId);
-  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const Icons = {
     globe: (
@@ -323,37 +299,25 @@ const PublicProfilePage = () => {
         isWhite ? 'bg-white' : isLight ? 'bg-gray-50' : 'bg-black'
       }`}
     >
+      {/* Background avec vidéo ou image - style comme votre exemple */}
       {hasBackground && (
-        <div className="fixed inset-0 z-0 overflow-hidden">
-          {backgroundType === 'video' && publicProfile.backgroundUrl ? (
-            <video
-              ref={videoRef}
-              className="absolute inset-0 h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
+        <div 
+          className="fixed inset-0 z-0 overflow-hidden"
+          style={backgroundType === 'gradient' || backgroundType === 'image' ? backgroundStyle : {}}
+        >
+          {backgroundType === 'video' && publicProfile.backgroundUrl && (
+            <video 
+              className="absolute inset-0 h-full w-full object-cover" 
+              src={publicProfile.backgroundUrl} 
+              autoPlay 
+              muted 
+              loop 
               playsInline
               preload="auto"
-              src={publicProfile.backgroundUrl}
-              loading="lazy"
-              decoding="async"
-              poster={publicProfile.posterUrl || ''}
-              onCanPlay={() => {
-                const video = videoRef.current;
-                if (!video) return;
-
-                video.currentTime = 0;
-                video.play().catch(() => {});
-              }}
-            />
-          ) : (
-            <div
-              className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-              style={backgroundStyle}
             />
           )}
-
-          <div className="absolute inset-0 bg-black/45" />
+          
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       )}
 
@@ -368,8 +332,6 @@ const PublicProfilePage = () => {
           }`}
         />
       )}
-
-      <div className="fixed inset-0 z-0 pointer-events-none bg-black/10" />
 
       <div className="relative z-10 min-h-screen w-full">
         <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
