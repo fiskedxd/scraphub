@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -19,6 +19,7 @@ const PublicProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [spotifyData, setSpotifyData] = useState(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -55,6 +56,25 @@ const PublicProfilePage = () => {
 
     fetchSpotifyData();
   }, [profile, username]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
+
+    const startVideo = async () => {
+      try {
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.currentTime = 0;
+        await video.play();
+      } catch (error) {
+        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
+      }
+    };
+
+    startVideo();
+  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const Icons = {
     globe: (
@@ -313,15 +333,24 @@ const PublicProfilePage = () => {
         <div className="fixed inset-0 z-0 overflow-hidden">
             {backgroundType === 'video' && publicProfile.backgroundUrl ? (
               <video
+                ref={videoRef}
                 className="absolute inset-0 h-full w-full object-cover"
                 autoPlay
+                muted
                 loop
                 playsInline
+                preload="auto"
                 src={publicProfile.backgroundUrl}
-                // Optimisations 4K :
                 loading="lazy"
                 decoding="async"
-                poster={publicProfile.posterUrl || ''}  // Image de préchargement
+                poster={publicProfile.posterUrl || ''}
+                onCanPlay={() => {
+                  const video = videoRef.current;
+                  if (!video) return;
+
+                  video.currentTime = 0;
+                  video.play().catch(() => {});
+                }}
               />
             ) : (
             <div
