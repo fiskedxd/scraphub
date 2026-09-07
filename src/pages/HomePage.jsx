@@ -332,27 +332,41 @@ const HomePage = () => {
             )}
 
             {/* Contenu - invitation Discord */}
-            <div className="p-4 bg-transparent">
+            <div className="p-2">
               {currentNotification.invite && (
-                <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
-                  <div className="h-16 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_70%)]" />
-                  <div className="flex items-center gap-3 px-3 pb-3 -mt-7">
-                    <img src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=80" alt="Scraphub" className="h-14 w-14 rounded-2xl border-4 border-black object-cover" />
-                    <div className="min-w-0 pt-5">
-                      <div className="truncate text-sm font-semibold text-white">Scraphub</div>
-                      <div className="text-[11px] text-white/45">Serveur communautaire</div>
+                <div className="overflow-hidden rounded-[18px] border border-white/15 bg-black shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
+                  <div className="relative h-24 overflow-hidden bg-black">
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.1),transparent_42%,rgba(255,255,255,0.035))]" />
+                    <div className="absolute -right-12 -top-20 h-48 w-48 rounded-full border border-white/[0.08]" />
+                    <div className="absolute -right-3 -top-11 h-32 w-32 rounded-full border border-white/[0.06]" />
+                    <div className="absolute bottom-3 left-4 text-[10px] font-medium uppercase tracking-[0.24em] text-white/40">Discord community</div>
+                  </div>
+                  <div className="px-4 pb-4">
+                    <div className="-mt-9 flex items-end justify-between gap-3">
+                      <img src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=128" alt="Scraphub" className="h-[72px] w-[72px] rounded-[20px] border-[5px] border-black bg-black object-cover shadow-xl" />
+                      <span className="mb-2 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[10px] font-medium text-white/55">Invitation</span>
+                    </div>
+                    <div className="mt-3">
+                      <h3 className="text-lg font-semibold tracking-tight text-white">Scraphub</h3>
+                      <p className="mt-1 text-xs leading-relaxed text-white/45">Rejoins la communauté, les annonces et les événements privés.</p>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <div className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
+                        <div className="text-sm font-semibold text-white">11</div>
+                        <div className="mt-0.5 text-[10px] uppercase tracking-wider text-white/35">En ligne</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
+                        <div className="text-sm font-semibold text-white">201</div>
+                        <div className="mt-0.5 text-[10px] uppercase tracking-wider text-white/35">Membres</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                      <a href="https://discord.gg/Eq6vbubsMA" target="_blank" rel="noreferrer" className="flex items-center justify-center rounded-xl bg-white px-3 py-3 text-xs font-semibold text-black transition hover:bg-white/80">Rejoindre le serveur</a>
+                      <button type="button" aria-label="Informations sur le serveur" onClick={(event) => { event.stopPropagation(); setShowInviteInfo((value) => !value); }} className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-xs font-semibold text-white/70 transition hover:bg-white/10">i</button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between px-3 pb-3 text-[11px] text-white/45">
-                    <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white/70" />11 en ligne</span>
-                    <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white/25" />201 membres</span>
-                  </div>
-                  <div className="grid grid-cols-[1fr_auto] gap-2 border-t border-white/10 p-3">
-                    <a href="https://discord.gg/Eq6vbubsMA" target="_blank" rel="noreferrer" className="rounded-lg bg-white px-3 py-2 text-center text-xs font-semibold text-black transition hover:bg-white/80">Rejoindre le serveur</a>
-                    <button type="button" aria-label="Informations sur le serveur" onClick={(event) => { event.stopPropagation(); setShowInviteInfo((value) => !value); }} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10">Info</button>
-                  </div>
                   {showInviteInfo && (
-                    <div className="border-t border-white/10 px-3 py-3 text-[11px] leading-relaxed text-white/55">Des plans Pro peuvent être gagnés gratuitement lors des événements et annonces de la communauté.</div>
+                    <div className="border-t border-white/10 bg-white/[0.025] px-4 py-3 text-[11px] leading-relaxed text-white/55">Des plans Pro peuvent être gagnés gratuitement pendant les événements et annonces de la communauté.</div>
                   )}
                 </div>
               )}
