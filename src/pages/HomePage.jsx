@@ -332,23 +332,7 @@ const HomePage = () => {
             )}
 
             {/* Contenu - invitation Discord */}
-            <div className="p-4">
-              <div className="flex gap-3">
-                {/* Icône */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                  {currentNotification.icon}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm text-white">
-                    {currentNotification.title}
-                  </h4>
-                  <p className="text-xs mt-1 text-white/50 leading-relaxed">
-                    {currentNotification.description}
-                  </p>
-                </div>
-              </div>
-
+            <div className="p-4 bg-transparent">
               {currentNotification.invite && (
                 <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
                   <div className="h-16 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_70%)]" />
