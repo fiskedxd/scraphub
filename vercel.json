@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://scraphub-web-backend.fly.dev/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://scraphub-web-backend.fly.dev/uploads/:path*"
     }
   ]
 }
