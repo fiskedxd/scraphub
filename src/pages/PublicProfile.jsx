@@ -19,7 +19,6 @@ const PublicProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [spotifyData, setSpotifyData] = useState(null);
-  const [hasEnteredProfile, setHasEnteredProfile] = useState(false);
   const videoRef = useRef(null);
 
   const publicProfile = profile?.publicProfile || {};
@@ -84,6 +83,7 @@ const PublicProfilePage = () => {
     fetchSpotifyData();
   }, [profile, username]);
 
+  // Effet pour lancer la vidéo automatiquement
   useEffect(() => {
     const video = videoRef.current;
     if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
@@ -94,18 +94,17 @@ const PublicProfilePage = () => {
         video.playsInline = true;
         video.preload = 'auto';
         video.currentTime = 0;
-        if (hasEnteredProfile) {
-          await video.play();
-        } else {
-          video.pause();
-        }
+        // Lancement automatique sans attendre d'interaction
+        await video.play();
       } catch (error) {
-        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
+        console.warn('Impossible de démarrer la vidéo d\'arrière-plan:', error);
       }
     };
 
-    startVideo();
-  }, [backgroundType, publicProfile?.backgroundUrl, hasEnteredProfile]);
+    // Petit délai pour s'assurer que la vidéo est chargée
+    const timeoutId = setTimeout(startVideo, 100);
+    return () => clearTimeout(timeoutId);
+  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const Icons = {
     globe: (
@@ -307,7 +306,6 @@ const PublicProfilePage = () => {
   }
 
   const backgroundStyle = {};
-  const shouldGateProfile = backgroundType === 'video' && !hasEnteredProfile;
 
   if (backgroundType === 'gradient') {
     backgroundStyle.backgroundImage =
@@ -325,47 +323,30 @@ const PublicProfilePage = () => {
         isWhite ? 'bg-white' : isLight ? 'bg-gray-50' : 'bg-black'
       }`}
     >
-      {shouldGateProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <button
-            type="button"
-            onClick={() => {
-              setHasEnteredProfile(true);
-              requestAnimationFrame(() => {
-                videoRef.current?.play().catch(() => {});
-              });
-            }}
-            className="rounded-full border border-white/20 bg-white/5 px-8 py-4 text-lg font-medium tracking-wide text-white shadow-[0_0_30px_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-white/10"
-          >
-            Appuyer pour entrer
-          </button>
-        </div>
-      )}
-
       {hasBackground && (
         <div className="fixed inset-0 z-0 overflow-hidden">
-            {backgroundType === 'video' && publicProfile.backgroundUrl ? (
-              <video
-                ref={videoRef}
-                className="absolute inset-0 h-full w-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                src={publicProfile.backgroundUrl}
-                loading="lazy"
-                decoding="async"
-                poster={publicProfile.posterUrl || ''}
-                onCanPlay={() => {
-                  const video = videoRef.current;
-                  if (!video) return;
+          {backgroundType === 'video' && publicProfile.backgroundUrl ? (
+            <video
+              ref={videoRef}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              src={publicProfile.backgroundUrl}
+              loading="lazy"
+              decoding="async"
+              poster={publicProfile.posterUrl || ''}
+              onCanPlay={() => {
+                const video = videoRef.current;
+                if (!video) return;
 
-                  video.currentTime = 0;
-                  video.play().catch(() => {});
-                }}
-              />
-            ) : (
+                video.currentTime = 0;
+                video.play().catch(() => {});
+              }}
+            />
+          ) : (
             <div
               className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
               style={backgroundStyle}
