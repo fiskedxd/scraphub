@@ -342,7 +342,7 @@ const PublicProfilePage = () => {
               </svg>
               Appuyez pour entrer
             </span>
-            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <span className="absolute inset-0" />
           </button>
         </div>
       )}
