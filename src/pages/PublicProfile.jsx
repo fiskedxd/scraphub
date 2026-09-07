@@ -57,25 +57,6 @@ const PublicProfilePage = () => {
     fetchSpotifyData();
   }, [profile, username]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
-
-    const startVideo = async () => {
-      try {
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.currentTime = 0;
-        await video.play();
-      } catch (error) {
-        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
-      }
-    };
-
-    startVideo();
-  }, [backgroundType, publicProfile?.backgroundUrl]);
-
   const Icons = {
     globe: (
       <path
@@ -310,6 +291,25 @@ const PublicProfilePage = () => {
     publicProfile.location.trim() !== '';
 
   const hasEmail = showEmail && profile.email;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
+
+    const startVideo = async () => {
+      try {
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.currentTime = 0;
+        await video.play();
+      } catch (error) {
+        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
+      }
+    };
+
+    startVideo();
+  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const backgroundStyle = {};
 
