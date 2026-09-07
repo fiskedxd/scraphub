@@ -174,7 +174,7 @@ const HomePage = () => {
               <div className="lg:w-1/2 max-w-2xl text-center lg:text-left mx-auto lg:mx-0">
                 <h1 className="text-5xl sm:text-6xl font-bold leading-tight tracking-tight">ScrapHub</h1>
                 <p className="text-white/30 mt-6 text-sm sm:text-base max-w-xl mx-auto lg:mx-0">
-                  Détection de violations de données, fuites et menaces en temps réel.
+                  Plateforme OSINT pour rechercher des databreach, analyser les fuites de données et corréler les informations publiques, Discord et CINST.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mt-10 justify-center lg:justify-start">
                   <Link to="/login" className={`px-8 py-3 rounded-full border transition-all duration-200 text-center ${

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="ScrapHub, plateforme OSINT pour rechercher, corréler et visualiser des informations publiques." />
+    <meta name="keywords" content="OSINT, databreach, data breach, fuite de données, fuite de données personnelles, CINST, intelligence open source, recherche Discord, analyse de données publiques" />
     <meta name="author" content="ScrapHub" />
     <link rel="canonical" href="https://scraphub-eight.vercel.app/" />
 
@@ -12,6 +13,7 @@
     <meta property="og:site_name" content="ScrapHub" />
     <meta property="og:title" content="ScrapHub | Recherche OSINT" />
     <meta property="og:description" content="Recherche OSINT, analyse de données publiques et corrélation de profils sur ScrapHub." />
+    <meta property="og:locale" content="fr_FR" />
     <meta property="og:url" content="https://scraphub-eight.vercel.app/" />
     <meta property="og:image" content="https://scraphub-eight.vercel.app/logo.png" />
     <meta property="og:image:alt" content="Logo ScrapHub" />
@@ -21,6 +23,43 @@
     <meta name="twitter:description" content="Recherche OSINT et corrélation de données publiques." />
     <meta name="twitter:image" content="https://scraphub-eight.vercel.app/logo.png" />
     <title>ScrapHub | Recherche OSINT</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://scraphub-eight.vercel.app/#organization",
+            "name": "ScrapHub",
+            "url": "https://scraphub-eight.vercel.app/",
+            "logo": "https://scraphub-eight.vercel.app/logo.png",
+            "sameAs": ["https://discord.gg/Eq6vbubsMA"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://scraphub-eight.vercel.app/#website",
+            "name": "ScrapHub",
+            "url": "https://scraphub-eight.vercel.app/",
+            "inLanguage": "fr-FR",
+            "publisher": {"@id": "https://scraphub-eight.vercel.app/#organization"},
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://scraphub-eight.vercel.app/search?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "name": "ScrapHub OSINT",
+            "url": "https://scraphub-eight.vercel.app/",
+            "applicationCategory": "SecurityApplication",
+            "operatingSystem": "Web",
+            "description": "Plateforme de recherche OSINT, d'analyse de databreach et de corrélation de données publiques.",
+            "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <noscript>Vous devez activer JavaScript pour utiliser cette application.</noscript>
