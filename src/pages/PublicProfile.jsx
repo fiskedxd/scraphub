@@ -84,30 +84,26 @@ const PublicProfilePage = () => {
     fetchSpotifyData();
   }, [profile, username]);
 
-  // Effet pour lancer la vidéo après l'entrée
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
-
-    const startVideo = async () => {
-      try {
-        video.muted = false; // Son activé
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.currentTime = 0;
-        
-        if (hasEnteredProfile) {
-          await video.play();
-        } else {
-          video.pause();
+  // Fonction pour entrer dans le profil
+  const handleEnterProfile = () => {
+    if (!hasEnteredProfile) {
+      setHasEnteredProfile(true);
+      // Petit délai pour que le state se mette à jour
+      setTimeout(() => {
+        const video = videoRef.current;
+        if (video) {
+          video.muted = false;
+          video.play()
+            .then(() => {
+              console.log('Vidéo lancée avec succès');
+            })
+            .catch((error) => {
+              console.error('Erreur lecture vidéo:', error);
+            });
         }
-      } catch (error) {
-        console.warn('Impossible de démarrer la vidéo d\'arrière-plan:', error);
-      }
-    };
-
-    startVideo();
-  }, [backgroundType, publicProfile?.backgroundUrl, hasEnteredProfile]);
+      }, 100);
+    }
+  };
 
   const Icons = {
     globe: (
@@ -310,7 +306,6 @@ const PublicProfilePage = () => {
 
   const backgroundStyle = {};
   const isVideoBackground = backgroundType === 'video' && publicProfile?.backgroundUrl;
-  const shouldShowGate = isVideoBackground && !hasEnteredProfile;
 
   if (backgroundType === 'gradient') {
     backgroundStyle.backgroundImage =
@@ -327,21 +322,16 @@ const PublicProfilePage = () => {
       className={`relative min-h-screen w-full overflow-x-hidden ${
         isWhite ? 'bg-white' : isLight ? 'bg-gray-50' : 'bg-black'
       }`}
+      onClick={handleEnterProfile} // ← CLIC N'IMPORTE OÙ SUR LA PAGE
     >
       {/* Écran "Appuyez pour entrer" avec fond noir */}
-      {shouldShowGate && (
+      {isVideoBackground && !hasEnteredProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
           <button
             type="button"
-            onClick={() => {
-              setHasEnteredProfile(true);
-              requestAnimationFrame(() => {
-                const video = videoRef.current;
-                if (video) {
-                  video.muted = false;
-                  video.play().catch(() => {});
-                }
-              });
+            onClick={(e) => {
+              e.stopPropagation(); // Empêche la propagation
+              handleEnterProfile();
             }}
             className="group relative rounded-full border border-white/20 bg-white/5 px-10 py-5 text-xl font-medium tracking-wider text-white shadow-[0_0_60px_rgba(255,255,255,0.05)] backdrop-blur-md transition-all duration-500 hover:scale-105 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_80px_rgba(255,255,255,0.15)]"
           >
@@ -357,7 +347,7 @@ const PublicProfilePage = () => {
         </div>
       )}
 
-      {/* Background avec vidéo en pleine qualité */}
+      {/* Background avec vidéo */}
       {hasBackground && (
         <div className="fixed inset-0 z-0 overflow-hidden">
           {isVideoBackground ? (
@@ -370,20 +360,7 @@ const PublicProfilePage = () => {
               playsInline
               preload="auto"
               src={publicProfile.backgroundUrl}
-              loading="lazy"
-              decoding="async"
               poster={publicProfile.posterUrl || ''}
-              // Qualité maximale
-              playsInline
-              crossOrigin="anonymous"
-              onCanPlay={() => {
-                const video = videoRef.current;
-                if (!video) return;
-                video.currentTime = 0;
-                if (hasEnteredProfile) {
-                  video.play().catch(() => {});
-                }
-              }}
             />
           ) : (
             <div
