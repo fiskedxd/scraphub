@@ -333,7 +333,7 @@ const PublicProfilePage = () => {
               e.stopPropagation(); // Empêche la propagation
               handleEnterProfile();
             }}
-            className="group relative rounded-full border border-white/20 bg-white/5 px-10 py-5 text-xl font-medium tracking-wider text-white shadow-[0_0_60px_rgba(255,255,255,0.05)] backdrop-blur-md transition-all duration-500 hover:scale-105 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_80px_rgba(255,255,255,0.15)]"
+            className=""
           >
             <span className="relative z-10 flex items-center gap-3">
               <svg className="h-6 w-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +342,7 @@ const PublicProfilePage = () => {
               </svg>
               Appuyez pour entrer
             </span>
-            <span className="absolute inset-0" />
+            <span className="absolute inset-0 " />
           </button>
         </div>
       )}
