@@ -17,6 +17,7 @@ const HomePage = () => {
   const contextMenuRef = useRef(null);
   const homeRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showInviteInfo, setShowInviteInfo] = useState(false);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0 });
   const navigate = useNavigate();
 
@@ -24,42 +25,11 @@ const HomePage = () => {
   const notifications = [
     {
       id: 1,
-      title: "Bienvenue",
-      description: "On t'accueille très heureux sur scraphub",
+      title: "Rejoins le serveur Scraphub",
+      description: "Retrouve la communauté, les annonces et les événements Scraphub.",
+      invite: true,
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
-      )
-    },
-    {
-      id: 2,
-      title: "Explorer new DISCORD DM",
-      description: "Découvrez les nouveaux messages privés Discord",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-      )
-    },
-    {
-      id: 3,
-      title: "Mise à jour : ajout musique",
-      description: "Nouvelle fonctionnalité : soundboard et playlists",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-        </svg>
-      )
-    },
-    {
-      id: 4,
-      title: "Nouveau DM",
-      description: "Vous avez reçu un message privé",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+        <img src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=80" alt="Scraphub" className="h-10 w-10 rounded-full object-cover" />
       )
     }
   ];
@@ -361,7 +331,7 @@ const HomePage = () => {
               </div>
             )}
 
-            {/* Contenu - SANS TIMER */}
+            {/* Contenu - invitation Discord */}
             <div className="p-4">
               <div className="flex gap-3">
                 {/* Icône */}
@@ -377,16 +347,31 @@ const HomePage = () => {
                     {currentNotification.description}
                   </p>
                 </div>
-
-                {/* Indicateur de swipe Apple (petit chevron) */}
-                {!isExpanded && notifications.length > 1 && (
-                  <div className="flex-shrink-0 self-center">
-                    <svg className="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                )}
               </div>
+
+              {currentNotification.invite && (
+                <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+                  <div className="h-16 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_70%)]" />
+                  <div className="flex items-center gap-3 px-3 pb-3 -mt-7">
+                    <img src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=80" alt="Scraphub" className="h-14 w-14 rounded-2xl border-4 border-black object-cover" />
+                    <div className="min-w-0 pt-5">
+                      <div className="truncate text-sm font-semibold text-white">Scraphub</div>
+                      <div className="text-[11px] text-white/45">Serveur communautaire</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-3 pb-3 text-[11px] text-white/45">
+                    <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white/70" />11 en ligne</span>
+                    <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white/25" />201 membres</span>
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto] gap-2 border-t border-white/10 p-3">
+                    <a href="https://discord.gg/Eq6vbubsMA" target="_blank" rel="noreferrer" className="rounded-lg bg-white px-3 py-2 text-center text-xs font-semibold text-black transition hover:bg-white/80">Rejoindre le serveur</a>
+                    <button type="button" aria-label="Informations sur le serveur" onClick={(event) => { event.stopPropagation(); setShowInviteInfo((value) => !value); }} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10">Info</button>
+                  </div>
+                  {showInviteInfo && (
+                    <div className="border-t border-white/10 px-3 py-3 text-[11px] leading-relaxed text-white/55">Des plans Pro peuvent être gagnés gratuitement lors des événements et annonces de la communauté.</div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Effet de brillance au survol */}
