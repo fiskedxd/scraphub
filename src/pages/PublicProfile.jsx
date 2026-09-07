@@ -239,6 +239,9 @@ const PublicProfilePage = () => {
   const isOwner = authUser?.email === profile.email;
   const isPrivate = profile.privacy?.profileVisibility === 'private';
 
+  const hasLocation = hasLocationFlag;
+  const hasEmail = hasEmailFlag;
+
   if (isPrivate && !isOwner) {
     return (
       <div
