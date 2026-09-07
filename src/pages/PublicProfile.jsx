@@ -310,7 +310,6 @@ const PublicProfilePage = () => {
               className="absolute inset-0 h-full w-full object-cover" 
               src={publicProfile.backgroundUrl} 
               autoPlay 
-              muted 
               loop 
               playsInline
               preload="auto"
