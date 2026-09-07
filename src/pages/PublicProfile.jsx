@@ -19,6 +19,8 @@ const PublicProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [spotifyData, setSpotifyData] = useState(null);
+  const [hasEnteredProfile, setHasEnteredProfile] = useState(false);
+  const videoRef = useRef(null);
 
   const publicProfile = profile?.publicProfile || {};
   const previewName = publicProfile.displayName || profile?.name || profile?.email;
@@ -81,6 +83,31 @@ const PublicProfilePage = () => {
 
     fetchSpotifyData();
   }, [profile, username]);
+
+  // Effet pour lancer la vidéo après l'entrée
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
+
+    const startVideo = async () => {
+      try {
+        video.muted = false; // Son activé
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.currentTime = 0;
+        
+        if (hasEnteredProfile) {
+          await video.play();
+        } else {
+          video.pause();
+        }
+      } catch (error) {
+        console.warn('Impossible de démarrer la vidéo d\'arrière-plan:', error);
+      }
+    };
+
+    startVideo();
+  }, [backgroundType, publicProfile?.backgroundUrl, hasEnteredProfile]);
 
   const Icons = {
     globe: (
@@ -282,6 +309,8 @@ const PublicProfilePage = () => {
   }
 
   const backgroundStyle = {};
+  const isVideoBackground = backgroundType === 'video' && publicProfile?.backgroundUrl;
+  const shouldShowGate = isVideoBackground && !hasEnteredProfile;
 
   if (backgroundType === 'gradient') {
     backgroundStyle.backgroundImage =
@@ -299,24 +328,71 @@ const PublicProfilePage = () => {
         isWhite ? 'bg-white' : isLight ? 'bg-gray-50' : 'bg-black'
       }`}
     >
-      {/* Background avec vidéo ou image - style comme votre exemple */}
+      {/* Écran "Appuyez pour entrer" avec fond noir */}
+      {shouldShowGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <button
+            type="button"
+            onClick={() => {
+              setHasEnteredProfile(true);
+              requestAnimationFrame(() => {
+                const video = videoRef.current;
+                if (video) {
+                  video.muted = false;
+                  video.play().catch(() => {});
+                }
+              });
+            }}
+            className="group relative rounded-full border border-white/20 bg-white/5 px-10 py-5 text-xl font-medium tracking-wider text-white shadow-[0_0_60px_rgba(255,255,255,0.05)] backdrop-blur-md transition-all duration-500 hover:scale-105 hover:border-white/40 hover:bg-white/10 hover:shadow-[0_0_80px_rgba(255,255,255,0.15)]"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              <svg className="h-6 w-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Appuyez pour entrer
+            </span>
+            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          </button>
+        </div>
+      )}
+
+      {/* Background avec vidéo en pleine qualité */}
       {hasBackground && (
-        <div 
-          className="fixed inset-0 z-0 overflow-hidden"
-          style={backgroundType === 'gradient' || backgroundType === 'image' ? backgroundStyle : {}}
-        >
-          {backgroundType === 'video' && publicProfile.backgroundUrl && (
-            <video 
-              className="absolute inset-0 h-full w-full object-cover" 
-              src={publicProfile.backgroundUrl} 
-              autoPlay 
-              loop 
+        <div className="fixed inset-0 z-0 overflow-hidden">
+          {isVideoBackground ? (
+            <video
+              ref={videoRef}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted={!hasEnteredProfile}
+              loop
               playsInline
               preload="auto"
+              src={publicProfile.backgroundUrl}
+              loading="lazy"
+              decoding="async"
+              poster={publicProfile.posterUrl || ''}
+              // Qualité maximale
+              playsInline
+              crossOrigin="anonymous"
+              onCanPlay={() => {
+                const video = videoRef.current;
+                if (!video) return;
+                video.currentTime = 0;
+                if (hasEnteredProfile) {
+                  video.play().catch(() => {});
+                }
+              }}
+            />
+          ) : (
+            <div
+              className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
+              style={backgroundStyle}
             />
           )}
-          
-          <div className="absolute inset-0 bg-black/40" />
+
+          <div className="absolute inset-0 bg-black/45" />
         </div>
       )}
 
@@ -331,6 +407,8 @@ const PublicProfilePage = () => {
           }`}
         />
       )}
+
+      <div className="fixed inset-0 z-0 pointer-events-none bg-black/10" />
 
       <div className="relative z-10 min-h-screen w-full">
         <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
