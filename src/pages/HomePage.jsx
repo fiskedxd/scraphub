@@ -332,41 +332,76 @@ const HomePage = () => {
             )}
 
             {/* Contenu - invitation Discord */}
-            <div className="p-2">
+            <div className="">
               {currentNotification.invite && (
-                <div className="overflow-hidden rounded-[18px] border border-white/15 bg-black shadow-[0_18px_60px_rgba(0,0,0,0.55)]">
-                  <div className="relative h-24 overflow-hidden bg-black">
-                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.1),transparent_42%,rgba(255,255,255,0.035))]" />
-                    <div className="absolute -right-12 -top-20 h-48 w-48 rounded-full border border-white/[0.08]" />
-                    <div className="absolute -right-3 -top-11 h-32 w-32 rounded-full border border-white/[0.06]" />
-                    <div className="absolute bottom-3 left-4 text-[10px] font-medium uppercase tracking-[0.24em] text-white/40">Discord community</div>
-                  </div>
-                  <div className="px-4 pb-4">
-                    <div className="-mt-9 flex items-end justify-between gap-3">
-                      <img src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=128" alt="Scraphub" className="h-[72px] w-[72px] rounded-[20px] border-[5px] border-black bg-black object-cover shadow-xl" />
-                      <span className="mb-2 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[10px] font-medium text-white/55">Invitation</span>
+                <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-black shadow-[0_8px_32px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
+                  {/* Bannière subtile */}
+                  <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/[0.04] to-transparent" />
+                  
+                  {/* Contenu principal */}
+                  <div className="relative flex items-center gap-3 px-4 pt-4 pb-2">
+                    <div className="relative">
+                      <img 
+                        src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=80" 
+                        alt="Scraphub" 
+                        className="h-12 w-12 rounded-xl border border-white/10 object-cover shadow-lg"
+                      />
+                      <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black bg-emerald-400/90" />
                     </div>
-                    <div className="mt-3">
-                      <h3 className="text-lg font-semibold tracking-tight text-white">Scraphub</h3>
-                      <p className="mt-1 text-xs leading-relaxed text-white/45">Rejoins la communauté, les annonces et les événements privés.</p>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <div className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
-                        <div className="text-sm font-semibold text-white">11</div>
-                        <div className="mt-0.5 text-[10px] uppercase tracking-wider text-white/35">En ligne</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-sm font-medium text-white">Scraphub</span>
+                        <svg className="h-3.5 w-3.5 shrink-0 text-indigo-400/80" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
-                        <div className="text-sm font-semibold text-white">201</div>
-                        <div className="mt-0.5 text-[10px] uppercase tracking-wider text-white/35">Membres</div>
+                      <div className="flex items-center gap-2 text-[10px] text-white/40">
+                        <span className="flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70 animate-pulse" />
+                          11 en ligne
+                        </span>
+                        <span>•</span>
+                        <span>201 membres</span>
                       </div>
                     </div>
-                    <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-                      <a href="https://discord.gg/Eq6vbubsMA" target="_blank" rel="noreferrer" className="flex items-center justify-center rounded-xl bg-white px-3 py-3 text-xs font-semibold text-black transition hover:bg-white/80">Rejoindre le serveur</a>
-                      <button type="button" aria-label="Informations sur le serveur" onClick={(event) => { event.stopPropagation(); setShowInviteInfo((value) => !value); }} className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-xs font-semibold text-white/70 transition hover:bg-white/10">i</button>
-                    </div>
                   </div>
+              
+                  {/* Actions */}
+                  <div className="relative flex gap-2 px-4 pb-4">
+                    <a 
+                      href="https://discord.gg/Eq6vbubsMA" 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="flex-1 rounded-xl bg-white px-3 py-2 text-center text-xs font-medium text-black transition-all duration-200 hover:bg-white/90 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] active:scale-[0.98]"
+                    >
+                      Rejoindre
+                    </a>
+                    <button 
+                      type="button" 
+                      aria-label="Informations sur le serveur" 
+                      onClick={(event) => { event.stopPropagation(); setShowInviteInfo((value) => !value); }} 
+                      className={`rounded-xl border px-3 py-2 text-xs transition-all duration-200 active:scale-[0.98] ${
+                        showInviteInfo 
+                          ? 'border-white/25 bg-white/10 text-white' 
+                          : 'border-white/10 text-white/60 hover:bg-white/5 hover:text-white/90'
+                      }`}
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                    
+                  {/* Info dépliante */}
                   {showInviteInfo && (
-                    <div className="border-t border-white/10 bg-white/[0.025] px-4 py-3 text-[11px] leading-relaxed text-white/55">Des plans Pro peuvent être gagnés gratuitement pendant les événements et annonces de la communauté.</div>
+                    <div className="relative border-t border-white/[0.06] px-4 py-3 text-[11px] leading-relaxed text-white/50 bg-white/[0.02]">
+                      <div className="flex items-start gap-2">
+                        <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <span>Des plans Pro peuvent être gagnés gratuitement lors des événements et annonces de la communauté.</span>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
