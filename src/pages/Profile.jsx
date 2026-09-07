@@ -170,7 +170,7 @@ const ProfilePage = () => {
         const xhr = new XMLHttpRequest();
         const apiOrigin =
           process.env.REACT_APP_API_URL ||
-          (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
+          (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://scraphub-web-backend.fly.dev');
         xhr.open('POST', `${apiOrigin}/api/upload/profile`);
         xhr.timeout = 0;
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
