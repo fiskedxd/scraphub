@@ -21,6 +21,32 @@ const PublicProfilePage = () => {
   const [spotifyData, setSpotifyData] = useState(null);
   const videoRef = useRef(null);
 
+  const publicProfile = profile?.publicProfile || {};
+  const previewName = publicProfile.displayName || profile?.name || profile?.email;
+  const previewHandle =
+    publicProfile.username ||
+    publicProfile.displayName ||
+    profile?.name ||
+    profile?.email;
+
+  const showEmail = publicProfile.showEmail || profile?.privacy?.showEmail;
+  const showLocation = publicProfile.showLocation ?? profile?.privacy?.showLocation;
+
+  const backgroundType =
+    publicProfile.backgroundType ||
+    (publicProfile.backgroundUrl?.match(/\.(mp4|webm|mov|mkv|avi)$/i) ? 'video' : 'image');
+
+  const hasBackground =
+    backgroundType === 'gradient' ||
+    (backgroundType === 'image' && publicProfile.backgroundUrl) ||
+    (backgroundType === 'video' && publicProfile.backgroundUrl);
+
+  const hasBio = publicProfile.bio && publicProfile.bio.trim() !== '';
+  const hasWebsite = publicProfile.website && publicProfile.website.trim() !== '';
+  const hasLocationFlag =
+    showLocation && publicProfile.location && publicProfile.location.trim() !== '';
+  const hasEmailFlag = showEmail && profile?.email;
+
   useEffect(() => {
     const load = async () => {
       const result = await getPublicProfile(username);
@@ -56,6 +82,25 @@ const PublicProfilePage = () => {
 
     fetchSpotifyData();
   }, [profile, username]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
+
+    const startVideo = async () => {
+      try {
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.currentTime = 0;
+        await video.play();
+      } catch (error) {
+        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
+      }
+    };
+
+    startVideo();
+  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const Icons = {
     globe: (
@@ -252,64 +297,6 @@ const PublicProfilePage = () => {
       </div>
     );
   }
-
-  const publicProfile = profile.publicProfile || {};
-  const previewName =
-    publicProfile.displayName || profile.name || profile.email;
-  const previewHandle =
-    publicProfile.username ||
-    publicProfile.displayName ||
-    profile.name ||
-    profile.email;
-
-  const showEmail =
-    publicProfile.showEmail || profile.privacy?.showEmail;
-
-  const showLocation =
-    publicProfile.showLocation ?? profile.privacy?.showLocation;
-
-  const backgroundType =
-    publicProfile.backgroundType ||
-    (publicProfile.backgroundUrl?.match(/\.(mp4|webm|mov|mkv|avi)$/i)
-      ? 'video'
-      : 'image');
-
-  const hasBackground =
-    backgroundType === 'gradient' ||
-    (backgroundType === 'image' && publicProfile.backgroundUrl) ||
-    (backgroundType === 'video' && publicProfile.backgroundUrl);
-
-  const hasBio =
-    publicProfile.bio && publicProfile.bio.trim() !== '';
-
-  const hasWebsite =
-    publicProfile.website && publicProfile.website.trim() !== '';
-
-  const hasLocation =
-    showLocation &&
-    publicProfile.location &&
-    publicProfile.location.trim() !== '';
-
-  const hasEmail = showEmail && profile.email;
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || backgroundType !== 'video' || !publicProfile?.backgroundUrl) return;
-
-    const startVideo = async () => {
-      try {
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = 'auto';
-        video.currentTime = 0;
-        await video.play();
-      } catch (error) {
-        console.warn('Impossible de démarrer la vidéo d’arrière-plan:', error);
-      }
-    };
-
-    startVideo();
-  }, [backgroundType, publicProfile?.backgroundUrl]);
 
   const backgroundStyle = {};
 
