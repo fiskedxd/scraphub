@@ -434,7 +434,7 @@ const PublicProfilePage = () => {
                 <img
                   src={publicProfile.avatar || '/pdp.png'}
                   alt={previewName}
-                  className="h-24 w-24 shrink-0 rounded-full border-4 border-white/20 object-cover shadow-xl"
+                  className="h-24 w-24 shrink-0 rounded-full object-cover shadow-xl"
                 />
 
                 <div className="min-w-0">
