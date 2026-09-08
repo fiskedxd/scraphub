@@ -307,6 +307,14 @@ const normalizeLookup2bzItems = (data) => {
   }
 
   if (typeof data === 'object') {
+    if (Array.isArray(data.records)) {
+      return data.records.map((item) => normalizeItemSource(item, data));
+    }
+
+    if (Array.isArray(data.serviceResponses)) {
+      return [];
+    }
+
     if (Array.isArray(data.body)) {
       return normalizeLookup2bzItems(data.body);
     }
@@ -1584,6 +1592,7 @@ const SearchPage = () => {
   const [intelxBuckets, setIntelxBuckets] = useState([]);
   const [victimManifest, setVictimManifest] = useState(null);
   const [victimLogId, setVictimLogId] = useState(null);
+  const [logDetailItem, setLogDetailItem] = useState(null);
   const [selectedVictimFile, setSelectedVictimFile] = useState(null);
   const [victimFileSearch, setVictimFileSearch] = useState('');
   
@@ -4319,6 +4328,33 @@ if (searchType === 'discord') {
     );
   };
 
+  const LogDetailPanel = () => {
+    if (!logDetailItem) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
+        <div className="w-full max-w-xl rounded-2xl border border-white/[0.12] bg-black p-5 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+            <div className="flex items-center gap-2 text-white">
+              {Icons.file}
+              <h3 className="text-sm font-semibold">Détails du log</h3>
+            </div>
+            <button type="button" onClick={() => setLogDetailItem(null)} className="text-xs text-white/50 hover:text-white">Fermer</button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {Object.entries(logDetailItem).map(([key, value]) => (
+              <div key={key} className="rounded-lg border border-white/[0.07] bg-white/[0.025] p-3">
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-white/35">{key}</div>
+                <div className="break-all font-mono text-xs text-white/75">{String(value || '—')}</div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-white/35">Vue limitée aux métadonnées. Les fichiers privés du log ne sont pas ouverts ni téléchargés.</p>
+        </div>
+      </div>
+    );
+  };
+
   const OsintPanel = () => {
     const [selectedService, setSelectedService] = useState('');
     const [osintValue, setOsintValue] = useState('');
@@ -4708,6 +4744,7 @@ if (searchType === 'discord') {
         </div>
 
         <VictimManifestPanel />
+        <LogDetailPanel />
         <OsintPanel />
         <IntelxPanel />
         <VulnScanPanel />
@@ -5282,6 +5319,30 @@ if (searchType === 'discord') {
                           >
                             {Icons.location}
                             Chercher les voisins
+                          </button>
+                        )}
+                        {cat.type === 'stealer' && fields.log_id && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              let domain = '';
+                              try {
+                                domain = new URL(String(fields.url || '')).hostname;
+                              } catch (error) {
+                                domain = String(fields.url || '');
+                              }
+                              setLogDetailItem({
+                                logId: fields.log_id,
+                                date: fields.pwned_at || fields.indexed_at || '—',
+                                domain: domain || '—',
+                                source: 'ScrapHub • Logs',
+                              });
+                            }}
+                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/65 transition hover:bg-white/[0.07] hover:text-white"
+                          >
+                            {Icons.file}
+                            Détails du log
                           </button>
                         )}
                         </div>
