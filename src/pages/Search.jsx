@@ -2523,20 +2523,63 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
       setTechnologies(detectedTechs);
       setVulnerabilities(detectedVulns);
       
+      let lookup2bzResult = null;
+      try {
+        lookup2bzResult = await searchLookup2bzAll(combinedQuery);
+      } catch (lookupError) {
+        console.warn('Lookup2bz merge failed:', lookupError?.message || lookupError);
+      }
+
+      const apiRecords = Array.isArray(lookup2bzResult?.records) ? lookup2bzResult.records : [];
+      const apiMergedRecords = apiRecords.map((entry) => ({
+        content: JSON.stringify(entry),
+        source: entry.source || 'lookup2bz',
+        parsedData: entry,
+      }));
+
+      const mergedAllRecords = [...parsedRecords, ...apiMergedRecords];
+      const mergedSources = [...Array.from(sourcesMap.values())];
+      if (lookup2bzResult && Array.isArray(lookup2bzResult.serviceResponses)) {
+        mergedSources.push({
+          name: 'Lookup2bz',
+          entries: lookup2bzResult.totalMatches || apiRecords.length,
+          date: '2026-06-01',
+          records: apiRecords,
+        });
+      }
+
+      const mergedEmails = new Set(Array.from(allEmails));
+      apiRecords.forEach((entry) => {
+        const extracted = [
+          entry.email,
+          entry.courriel,
+          entry.mail,
+          entry.username,
+          entry.login,
+          entry.phone,
+          entry.telephone,
+          entry.phone_number,
+          entry.phone_national,
+        ].filter(Boolean);
+        extracted.forEach((value) => mergedEmails.add(normalizeEmail(String(value))));
+        extractEmailsFromText(JSON.stringify(entry)).forEach((email) => mergedEmails.add(email));
+      });
+
       const result = {
         success: true,
         type: 'data_leak',
         searchTerm: combinedQuery,
-        totalMatches: matchedRecords.length,
-        sources: Array.from(sourcesMap.values()),
-        allRecords: parsedRecords,
-        foundEmails: Array.from(allEmails),
+        totalMatches: mergedAllRecords.length,
+        sources: mergedSources,
+        allRecords: mergedAllRecords,
+        foundEmails: Array.from(mergedEmails),
         hibpResults: Object.keys(hibpData).length > 0 ? hibpData : null,
         identityProfile: profile,
         relationshipGraph: graph,
         familyGroups: familyConns,
         technologies: detectedTechs,
         vulnerabilities: detectedVulns,
+        lookup2bzResults: lookup2bzResult,
       };
 
       const newCache = new Map(searchCache);
