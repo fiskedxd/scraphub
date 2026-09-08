@@ -401,7 +401,12 @@ const searchLookup2bzAll = async (query) => {
     throw new Error(data?.error || 'Erreur de recherche ScrapHub');
   }
 
-  return buildLookup2bzResult(trimmed, data);
+  if (data && Array.isArray(data.records)) {
+    return buildLookup2bzResult(trimmed, data);
+  }
+
+  const normalized = data && Array.isArray(data.results) ? data : { results: [data] };
+  return buildLookup2bzResult(trimmed, normalized);
 };
 
 const getApiFieldValue = (value) => {
