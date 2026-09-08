@@ -4927,54 +4927,233 @@ if (searchType === 'discord') {
         )}
         
         {(searchType === 'data' || searchType === 'domain') && results && results.success && !showGraph && !selectedRecord && results.allRecords && results.allRecords.length > 0 && (
-          <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
-            <div className="p-5 border-b border-white/[0.06] bg-black">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div><h2 className="text-lg font-semibold">Résultats</h2><p className="text-white/40 text-xs">Recherche: "{results.searchTerm}"</p></div>
-                <div><span className="text-2xl font-bold">{results.totalMatches}</span><span className="text-white/40 text-xs ml-1">entrées</span></div>
+          <div className="mt-6 space-y-4">
+            {/* En-tête des résultats */}
+            <div className="bg-black/30 backdrop-blur-xl rounded-2xl border border-white/10 p-4 flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-white/90">Résultats</h2>
+                <p className="text-white/40 text-xs">Recherche: "{results.searchTerm}"</p>
+              </div>
+              <div className="flex gap-4 text-sm">
+                <span className="text-white/60">Total: <span className="text-white font-bold">{results.totalMatches || 0}</span></span>
+                <span className="text-white/60">Sources: <span className="text-white font-bold">
+                  {(() => {
+                    const sources = new Set(results.allRecords.map(r => r.source || 'unknown'));
+                    return sources.size;
+                  })()}
+                </span></span>
               </div>
             </div>
-            <div className="p-5">
-              <h3 className="text-xs font-medium text-white/50 mb-3 flex items-center gap-2">{Icons.copy} Résultats ({results.totalMatches} entrées)</h3>
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {results.allRecords?.map((record, idx) => {
-                  const data = record.parsedData || record;
-                  const displayName = data.prenom || data.nom_complet || data.email || data.courriel || `Entrée ${idx + 1}`;
-                  const contentSnippet = flattenRecordToText(record).slice(0, 140);
-                  const detectedDomains = extractDomainsFromText(contentSnippet);
-                  return (
-                    <div key={idx} onClick={() => setSelectedRecord(record)} onContextMenu={(e) => handleCopy(JSON.stringify(record, null, 2), e)} className="p-3 rounded-lg border border-white/[0.06] bg-black hover:bg-white/[0.08] cursor-pointer transition group">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="text-sm font-medium text-white">{displayName}</span>
-                            <span className={`text-xs font-mono px-2 py-0.5 rounded ${String(record.source).toLowerCase().includes('stealer') ? 'bg-amber-500/20 text-amber-300' : 'bg-purple-500/10 text-purple-300'}`}>{record.source}</span>
-                          </div>
-                          <div className="flex gap-3 text-xs text-white/40">
-                            {data.nom && <span>Nom: {data.nom}</span>}
-                            {data.prenom && <span>Prénom: {data.prenom}</span>}
-                            {data.date_naissance && <span>Né(e): {new Date(data.date_naissance).toLocaleDateString('fr-FR')}</span>}
-                            {data.allocataire?.prenom && data.allocataire?.nom && <span>Parent: {data.allocataire.prenom} {data.allocataire.nom}</span>}
-                          </div>
-                          <div className="text-white/50 text-xs font-mono mt-1 break-all">{renderTextWithLinks(contentSnippet, 'text-white/50 text-xs font-mono mt-1')}</div>
-                          {detectedDomains.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {detectedDomains.slice(0, 4).map((domain, di) => (
-                                <a key={`${domain}-${di}`} href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="text-[10px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded">
-                                  {domain}
-                                </a>
-                              ))}
-                            </div>
-                          )}
+                
+            {(() => {
+              // Fonction pour catégoriser un résultat
+              const getCategory = (record) => {
+                const source = String(record.source || '').toLowerCase();
+                const data = record.parsedData || record;
+                const text = JSON.stringify(data).toLowerCase();
+              
+                if (source.includes('breach') || source.includes('oath') || source.includes('leak') || 
+                    text.includes('breach') || text.includes('oathnet') || text.includes('leak') ||
+                    text.includes('credential') || text.includes('pwn')) {
+                  return { type: 'breach', label: 'Breach / OathNet', icon: '🔓', color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
+                }
+              
+                if (source.includes('intelx') || text.includes('intelx') || 
+                    text.includes('systemid') || text.includes('bucket')) {
+                  return { type: 'intelx', label: 'IntelX', icon: '🧠', color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
+                }
+              
+                if (source.includes('lookup2bz') || source.includes('blacksanta') || source.includes('api') ||
+                    text.includes('lookup2bz') || text.includes('blacksanta') ||
+                    data.log_id || data.archive_hash) {
+                  return { type: 'api', label: 'API / Blacksanta', icon: '⚡', color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
+                }
+              
+                if (source.includes('stealer') || data.log_id || data.archive_hash || data.pwned_at) {
+                  return { type: 'stealer', label: 'Stealer Logs', icon: '📋', color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
+                }
+              
+                if (source.includes('ulp') || source.includes('local') || source.includes('sqlite') ||
+                    data.nom || data.prenom || data.adresse || data.allocataire) {
+                  return { type: 'local', label: 'Local DB / ULP', icon: '🗄️', color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
+                }
+              
+                return { type: 'other', label: 'Autre', icon: '📌', color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
+              };
+            
+              // Grouper les résultats par catégorie
+              const grouped = {};
+              const allRecords = results.allRecords || [];
+              
+              allRecords.forEach(record => {
+                const cat = getCategory(record);
+                if (!grouped[cat.type]) {
+                  grouped[cat.type] = { ...cat, records: [] };
+                }
+                grouped[cat.type].records.push(record);
+              });
+            
+              // Ordre d'affichage
+              const order = ['breach', 'intelx', 'api', 'stealer', 'local', 'other'];
+            
+              // Rendu d'une carte individuelle
+              const renderCard = (record, idx) => {
+                const data = record.parsedData || record;
+                const cat = getCategory(record);
+              
+                // Extraction des champs
+                const fields = {
+                  nom: data.nom || data.last_name || data.lastName || data.surname || '',
+                  prenom: data.prenom || data.first_name || data.firstName || data.given_name || '',
+                  nom_complet: data.nom_complet || data.full_name || data.name || '',
+                  email: data.email || data.courriel || data.mail || data.email_address || '',
+                  telephone: data.telephone || data.phone || data.phone_number || data.phone_national || data.tel || '',
+                  date_naissance: data.date_naissance || data.birth_date || data.birthDate || data.dob || data.date_birth || '',
+                  adresse: data.adresse ? 
+                    `${data.adresse.voie || ''} ${data.adresse.code_postal || ''} ${data.adresse.commune || ''}`.trim() :
+                    data.adresse_complete || data.address || data.address_street || data.street || '',
+                  ville: data.ville || data.city || data.town || data.commune || '',
+                  code_postal: data.code_postal || data.postal_code || data.zip_code || data.postcode || '',
+                  age: data.age || data.years_old || data.age_years || '',
+                  sexe: data.sexe || data.gender || data.sex || '',
+                  log_id: data.log_id || data.id || '',
+                  pwned_at: data.pwned_at || '',
+                  indexed_at: data.indexed_at || '',
+                  archive_hash: data.archive_hash || '',
+                  username: data.username || data.pseudo || data.login || data.user || '',
+                  password: data.password || data.pwd || data.pass || '',
+                  url: data.url || data.website || data.domain || '',
+                  source: record.source || 'unknown',
+                  allocataire: data.allocataire || null,
+                  enfants: Array.isArray(data.enfants) ? data.enfants : (Array.isArray(data.children) ? data.children : []),
+                };
+              
+                // Titre
+                let title = fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
+                            fields.email || fields.username || fields.url || fields.log_id || `Entrée ${idx + 1}`;
+                if (title.length > 60) title = title.slice(0, 60) + '...';
+              
+                // Sous-titre
+                const parts = [];
+                if (fields.email) parts.push(`📧 ${fields.email}`);
+                if (fields.telephone) parts.push(`📱 ${fields.telephone}`);
+                if (fields.ville) parts.push(`📍 ${fields.ville}`);
+                if (fields.age) parts.push(`🎂 ${fields.age} ans`);
+                if (fields.date_naissance) parts.push(`📅 ${new Date(fields.date_naissance).toLocaleDateString('fr-FR')}`);
+                if (fields.username) parts.push(`👤 ${fields.username}`);
+                if (fields.log_id) parts.push(`🆔 ${fields.log_id.slice(0, 12)}...`);
+                if (fields.pwned_at) parts.push(`⚠️ ${new Date(fields.pwned_at).toLocaleDateString('fr-FR')}`);
+                
+                if (fields.allocataire) {
+                  const alloc = fields.allocataire;
+                  const allocName = `${alloc.prenom || ''} ${alloc.nom || ''}`.trim();
+                  if (allocName) parts.push(`👨‍👩‍👦 Parent: ${allocName}`);
+                }
+              
+                if (fields.enfants.length > 0) {
+                  const enfantsNames = fields.enfants.map(e => `${e.prenom || ''} ${e.nom || ''}`.trim()).filter(Boolean);
+                  if (enfantsNames.length > 0) {
+                    parts.push(`👶 Enfants: ${enfantsNames.slice(0, 3).join(', ')}${enfantsNames.length > 3 ? ` +${enfantsNames.length - 3}` : ''}`);
+                  }
+                }
+              
+                const subtitle = parts.join(' • ');
+              
+                // Champs supplémentaires
+                const extra = [];
+                if (fields.nom && cat.type === 'local') extra.push({ label: 'Nom', value: fields.nom });
+                if (fields.prenom && cat.type === 'local') extra.push({ label: 'Prénom', value: fields.prenom });
+                if (fields.date_naissance && cat.type === 'local') extra.push({ label: 'Né(e)', value: new Date(fields.date_naissance).toLocaleDateString('fr-FR') });
+                if (fields.adresse && cat.type === 'local') extra.push({ label: 'Adresse', value: fields.adresse.slice(0, 50) });
+                if (fields.ville && cat.type === 'local') extra.push({ label: 'Ville', value: fields.ville });
+                if (fields.sexe && cat.type === 'local') extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? 'F' : fields.sexe === 'M' ? 'M' : fields.sexe });
+                if (fields.log_id && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
+                  extra.push({ label: 'Log ID', value: fields.log_id.slice(0, 16) + '...' });
+                }
+                if (fields.archive_hash && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
+                  extra.push({ label: 'Hash', value: fields.archive_hash.slice(0, 16) + '...' });
+                }
+                if (fields.username && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
+                  extra.push({ label: 'Login', value: fields.username });
+                }
+                if (fields.password && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
+                  extra.push({ label: 'MDP', value: fields.password.slice(0, 20) });
+                }
+                if (fields.url && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
+                  extra.push({ label: 'URL', value: fields.url.slice(0, 40) });
+                }
+              
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => setSelectedRecord(record)}
+                    className={`p-4 rounded-xl border ${cat.color} cursor-pointer transition-all duration-200 hover:scale-[1.01] group`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`text-xl ${cat.iconColor} mt-0.5`}>{cat.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div className="font-medium text-white/90 text-base truncate">{title}</div>
+                          <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0">{cat.label}</span>
                         </div>
-                        <button className="opacity-0 group-hover:opacity-100 transition p-1" onClick={(e) => { e.stopPropagation(); handleCopy(JSON.stringify(record, null, 2), e); }}>{Icons.copy}</button>
+                        {subtitle && (
+                          <div className="text-sm text-white/50 mt-1 truncate">{subtitle}</div>
+                        )}
+                        {extra.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {extra.slice(0, 4).map((field, fi) => (
+                              <span key={fi} className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60">
+                                {field.label}: <span className="text-white/80">{field.value}</span>
+                              </span>
+                            ))}
+                            {extra.length > 4 && (
+                              <span className="text-[10px] text-white/30">+{extra.length - 4}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              {results.allRecords?.length > 100 && <div className="mt-4 text-center text-white/40 text-xs">+ {results.allRecords.length - 100} résultats supplémentaires</div>}
-            </div>
+                  </div>
+                );
+              };
+            
+              // Rendu des sections
+              const sectionColors = {
+                breach: 'border-red-500/30 text-red-400',
+                intelx: 'border-cyan-500/30 text-cyan-400',
+                api: 'border-purple-500/30 text-purple-400',
+                stealer: 'border-amber-500/30 text-amber-400',
+                local: 'border-emerald-500/30 text-emerald-400',
+                other: 'border-white/20 text-white/40',
+              };
+            
+              const sectionBg = {
+                breach: 'bg-red-500/5',
+                intelx: 'bg-cyan-500/5',
+                api: 'bg-purple-500/5',
+                stealer: 'bg-amber-500/5',
+                local: 'bg-emerald-500/5',
+                other: 'bg-white/5',
+              };
+            
+              return order.map(catType => {
+                const group = grouped[catType];
+                if (!group || group.records.length === 0) return null;
+              
+                return (
+                  <div key={catType} className="mb-4">
+                    <div className={`flex items-center gap-3 mb-3 pb-2 border-b ${sectionColors[catType] || sectionColors.other}`}>
+                      <span className="text-xl">{group.icon}</span>
+                      <h3 className="text-sm font-medium text-white/80">{group.label}</h3>
+                      <span className="text-xs text-white/30">({group.records.length})</span>
+                    </div>
+                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-xl ${sectionBg[catType] || sectionBg.other} border border-white/5`}>
+                      {group.records.map((record, idx) => renderCard(record, idx))}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
         
