@@ -16,6 +16,8 @@ export default function PlansPage() {
   const [plans, setPlans] = useState(fallbackPlans);
   const [loadingPlan, setLoadingPlan] = useState('');
   const [message, setMessage] = useState('');
+  const [generatedKey, setGeneratedKey] = useState('');
+  const ownerAccount = user?.email?.toLowerCase() === 'slyre6@gmail.com';
 
   useEffect(() => {
     fetch('/api/plans')
@@ -49,6 +51,25 @@ export default function PlansPage() {
     }
   };
 
+  const generateKey = async (plan) => {
+    setLoadingPlan(plan.id);
+    setMessage('');
+    try {
+      const response = await fetch('/api/developer/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ plan: plan.id })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Impossible de générer la clé');
+      setGeneratedKey(data.key);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoadingPlan('');
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#070707] px-5 pb-16 pt-24 text-white sm:px-8">
       <div className="mx-auto max-w-6xl">
@@ -60,7 +81,7 @@ export default function PlansPage() {
         {message && <div className="mb-6 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">{message}</div>}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => {
-            const active = user?.accountType === plan.id || (plan.id === 'proplus' && user?.accountType === 'plus');
+            const active = ownerAccount || user?.accountType === plan.id || (plan.id === 'proplus' && user?.accountType === 'plus');
             return (
               <section key={plan.id} className={`flex min-h-[500px] flex-col rounded-2xl border p-6 ${plan.id === 'proplus' ? 'border-cyan-300/60 bg-cyan-300/[0.08]' : 'border-white/10 bg-white/[0.04]'}`}>
                 <div className="flex items-start justify-between gap-3">
@@ -74,7 +95,9 @@ export default function PlansPage() {
                   {(plan.features || []).map((feature) => <p key={feature} className="text-emerald-200">&#10003; {feature}</p>)}
                 </div>
                 <div className="mt-auto pt-8">
-                  {plan.id === 'free' || active ? (
+                  {ownerAccount ? (
+                    <button type="button" onClick={() => generateKey(plan)} disabled={Boolean(loadingPlan)} className="w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-semibold text-black transition hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-60">{loadingPlan === plan.id ? 'Génération...' : 'Générer une clé'}</button>
+                  ) : plan.id === 'free' || active ? (
                     <Link to={user ? '/search' : '/login'} className="block rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-semibold text-white/75 transition hover:border-white/30 hover:bg-white/10">{user ? 'Ouvrir la recherche' : 'Se connecter'}</Link>
                   ) : (
                     <button type="button" onClick={() => startCheckout(plan)} disabled={Boolean(loadingPlan)} className="w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-semibold text-black transition hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-60">{loadingPlan === plan.id ? 'Ouverture...' : 'Choisir ce plan'}</button>
@@ -84,6 +107,7 @@ export default function PlansPage() {
             );
           })}
         </div>
+        {generatedKey && <div className="mt-8 rounded-xl border border-cyan-300/30 bg-cyan-300/10 p-4"><p className="text-xs uppercase tracking-wider text-cyan-200">Clé générée, à conserver précieusement</p><code className="mt-2 block break-all text-sm text-white">{generatedKey}</code></div>}
         <p className="mt-8 text-xs leading-6 text-white/35">Le paiement est traite sur la page securisee du prestataire officiel. Aucun code de paiement n'est demande ni conserve par ScrapHub.</p>
       </div>
     </main>
