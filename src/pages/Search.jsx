@@ -141,11 +141,6 @@ const sanitizeDisplayText = (text) => {
   return cleaned.trim();
 };
 
-const truncateDisplayValue = (value, length) => {
-  if (value === null || value === undefined) return '';
-  return String(value).slice(0, length);
-};
-
 const sanitizeSensitiveValue = (value) => {
   if (value === null || value === undefined) return '';
   let sanitized = String(value).trim();
@@ -4249,7 +4244,7 @@ if (searchType === 'discord') {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-2">
               {Icons.folder}
-              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${truncateDisplayValue(victimLogId, 8)}`}</h3>
+              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${victimLogId.slice(0, 8)}`}</h3>
               <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-white/50">
                 {victimManifest.unlocked ? Icons.unlock : Icons.lock}
                 {victimManifest.unlocked ? ' Déverrouillé' : ' 1 crédit'}
@@ -4790,7 +4785,7 @@ if (searchType === 'discord') {
                               <div className="text-sm text-white/80 break-all">{item.url || item.login || item.password || JSON.stringify(item)}</div>
                               {item.login && <div className="text-[11px] text-white/40 mt-1">Login: {item.login}</div>}
                               {item.password && <div className="text-[11px] text-white/40 mt-1">Mot de passe: {item.password}</div>}
-                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{truncateDisplayValue(logId, 16)}...</div>}
+                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{logId.slice(0, 16)}...</div>}
                             </div>
                             <div className="flex gap-1">
                               {logId && (
@@ -4932,64 +4927,64 @@ if (searchType === 'discord') {
         )}
         
         {(searchType === 'data' || searchType === 'domain') && results && results.success && !showGraph && !selectedRecord && results.allRecords && results.allRecords.length > 0 && (
-          <div className="mt-6 space-y-4">
-            {/* En-tête des résultats */}
-            <div className="bg-black/30 backdrop-blur-xl rounded-2xl border border-white/10 p-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="mt-6 space-y-6">
+            {/* En-tête */}
+            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/5 p-4 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-white/90">Résultats</h2>
-                <p className="text-white/40 text-xs">Recherche: "{results.searchTerm}"</p>
+                <p className="text-white/30 text-xs">Recherche: "{results.searchTerm}"</p>
               </div>
               <div className="flex gap-4 text-sm">
-                <span className="text-white/60">Total: <span className="text-white font-bold">{results.totalMatches || 0}</span></span>
-                <span className="text-white/60">Sources: <span className="text-white font-bold">
-                  {(() => {
-                    const sources = new Set(results.allRecords.map(r => r.source || 'unknown'));
-                    return sources.size;
-                  })()}
+                <span className="text-white/50">Total: <span className="text-white font-bold">{results.totalMatches || results.allRecords?.length || 0}</span></span>
+                <span className="text-white/50">Sources: <span className="text-white font-bold">
+                  {new Set(results.allRecords?.map(r => r.source || 'unknown') || []).size}
                 </span></span>
               </div>
             </div>
-                
+        
             {(() => {
-              // Fonction pour catégoriser un résultat
+              // Fonction pour catégoriser - TOUT EST SCRAPHUB MAINTENANT
               const getCategory = (record) => {
                 const source = String(record.source || '').toLowerCase();
                 const data = record.parsedData || record;
                 const text = JSON.stringify(data).toLowerCase();
               
+                // Détection des types de données
                 if (source.includes('breach') || source.includes('oath') || source.includes('leak') || 
-                    text.includes('breach') || text.includes('oathnet') || text.includes('leak') ||
-                    text.includes('credential') || text.includes('pwn')) {
-                  return { type: 'breach', label: 'Breach / OathNet', icon: '🔓', color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
+                    text.includes('breach') || text.includes('oathnet') || text.includes('credential') || 
+                    text.includes('pwn') || text.includes('dump') || text.includes('pass.sports') ||
+                    text.includes('caf') || text.includes('allocataire')) {
+                  return { type: 'breach', label: 'ScrapHub • Breach', icon: '🔓', color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
                 }
               
                 if (source.includes('intelx') || text.includes('intelx') || 
                     text.includes('systemid') || text.includes('bucket')) {
-                  return { type: 'intelx', label: 'IntelX', icon: '🧠', color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
+                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: '🧠', color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
                 }
               
                 if (source.includes('lookup2bz') || source.includes('blacksanta') || source.includes('api') ||
                     text.includes('lookup2bz') || text.includes('blacksanta') ||
-                    data.log_id || data.archive_hash) {
-                  return { type: 'api', label: 'API / Blacksanta', icon: '⚡', color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
+                    data.log_id || data.archive_hash || data.pwned_at) {
+                  return { type: 'api', label: 'ScrapHub • API', icon: '⚡', color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
                 }
               
                 if (source.includes('stealer') || data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'stealer', label: 'Stealer Logs', icon: '📋', color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
+                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: '📋', color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
                 }
               
                 if (source.includes('ulp') || source.includes('local') || source.includes('sqlite') ||
-                    data.nom || data.prenom || data.adresse || data.allocataire) {
-                  return { type: 'local', label: 'Local DB / ULP', icon: '🗄️', color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
+                    data.nom || data.prenom || data.adresse || data.allocataire || data.ville ||
+                    data.adresse_voie || data.allocataire_prenom) {
+                  return { type: 'local', label: 'ScrapHub • Local', icon: '🗄️', color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
                 }
               
-                return { type: 'other', label: 'Autre', icon: '📌', color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
+                return { type: 'other', label: 'ScrapHub • Autre', icon: '📌', color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
               };
             
-              // Grouper les résultats par catégorie
+              // Grouper les résultats
               const grouped = {};
               const allRecords = results.allRecords || [];
-              
+
               allRecords.forEach(record => {
                 const cat = getCategory(record);
                 if (!grouped[cat.type]) {
@@ -5001,118 +4996,245 @@ if (searchType === 'discord') {
               // Ordre d'affichage
               const order = ['breach', 'intelx', 'api', 'stealer', 'local', 'other'];
             
-              // Rendu d'une carte individuelle
+              // Rendu d'une carte individuelle - STYLE PROPRE COMME DANS L'EXEMPLE
               const renderCard = (record, idx) => {
                 const data = record.parsedData || record;
                 const cat = getCategory(record);
               
-                // Extraction des champs
+                // Extraction intelligente des champs
                 const fields = {
-                  nom: data.nom || data.last_name || data.lastName || data.surname || '',
-                  prenom: data.prenom || data.first_name || data.firstName || data.given_name || '',
-                  nom_complet: data.nom_complet || data.full_name || data.name || '',
-                  email: data.email || data.courriel || data.mail || data.email_address || '',
-                  telephone: data.telephone || data.phone || data.phone_number || data.phone_national || data.tel || '',
-                  date_naissance: data.date_naissance || data.birth_date || data.birthDate || data.dob || data.date_birth || '',
+                  // Identité
+                  nom: data.nom || data.last_name || data.lastName || data.surname || data.family_name || data['last name'] || '',
+                  prenom: data.prenom || data.first_name || data.firstName || data.given_name || data['first name'] || '',
+                  nom_complet: data.nom_complet || data.full_name || data.name || data.fullName || data['full name'] || '',
+
+                  // Contact
+                  email: data.email || data.courriel || data.mail || data.email_address || data['e-mail'] || '',
+                  telephone: data.telephone || data.phone || data.phone_number || data.phone_national || data.tel || data.mobile || data['phone number'] || '',
+
+                  // Date
+                  date_naissance: data.date_naissance || data.birth_date || data.birthDate || data.dob || data.date_birth || data.birthday || data['date of birth'] || data['date_naissance'] || '',
+
+                  // Adresse
                   adresse: data.adresse ? 
-                    `${data.adresse.voie || ''} ${data.adresse.code_postal || ''} ${data.adresse.commune || ''}`.trim() :
-                    data.adresse_complete || data.address || data.address_street || data.street || '',
-                  ville: data.ville || data.city || data.town || data.commune || '',
-                  code_postal: data.code_postal || data.postal_code || data.zip_code || data.postcode || '',
-                  age: data.age || data.years_old || data.age_years || '',
-                  sexe: data.sexe || data.gender || data.sex || '',
-                  log_id: data.log_id || data.id || '',
-                  pwned_at: data.pwned_at || '',
-                  indexed_at: data.indexed_at || '',
-                  archive_hash: data.archive_hash || '',
-                  username: data.username || data.pseudo || data.login || data.user || '',
-                  password: data.password || data.pwd || data.pass || '',
-                  url: data.url || data.website || data.domain || '',
+                    `${data.adresse.voie || data.adresse.Voie || ''} ${data.adresse.code_postal || data.adresse['Code Postal'] || ''} ${data.adresse.commune || data.adresse.Commune || ''}`.trim() :
+                    data.adresse_complete || data.address || data.address_street || data.street || data.address_line || data['address'] || data['adresse_complete'] || '',
+                  ville: data.ville || data.city || data.town || data.commune || data['city'] || '',
+                  code_postal: data.code_postal || data.postal_code || data.zip_code || data.postcode || data['postal code'] || data['zip code'] || '',
+                  pays: data.country || data.pays || data['country'] || '',
+
+                  // Divers
+                  age: data.age || data.years_old || data.age_years || data['age'] || '',
+                  sexe: data.sexe || data.gender || data.sex || data.genre || data['gender'] || '',
+
+                  // Stealer / Breach
+                  log_id: data.log_id || data.id || data['log id'] || '',
+                  pwned_at: data.pwned_at || data['pwned at'] || data['breach date'] || '',
+                  indexed_at: data.indexed_at || data['indexed at'] || '',
+                  archive_hash: data.archive_hash || data.hash || data['hash'] || '',
+
+                  // Credentials
+                  username: data.username || data.pseudo || data.login || data.user || data.screen_name || data['login'] || '',
+                  password: data.password || data.pwd || data.pass || data.passphrase || data.secret || data['password'] || '',
+                  url: data.url || data.website || data.domain || data.source_url || data['url'] || '',
+
+                  // Source
                   source: record.source || 'unknown',
-                  allocataire: data.allocataire || null,
-                  enfants: Array.isArray(data.enfants) ? data.enfants : (Array.isArray(data.children) ? data.children : []),
+                  source_label: data.source || data.provider || record.source || '',
+
+                  // Allocataire (CAF)
+                  allocataire: data.allocataire || data['allocataire'] || null,
+
+                  // Enfants
+                  enfants: Array.isArray(data.enfants) ? data.enfants : 
+                           Array.isArray(data.children) ? data.children : 
+                           Array.isArray(data['enfants']) ? data['enfants'] : [],
+
+                  // Base
+                  dbname: data.dbname || data.database_name || data.source_db || data['dbname'] || '',
+
+                  // Champs CAF spécifiques
+                  id_psp: data.id_psp || data['id psp'] || data['Id Psp'] || '',
+                  organisme: data.organisme || data['organisme'] || '',
+                  situation: data.situation || data['situation'] || '',
+                  allocataire_qualite: data.allocataire_qualite || data['allocataire qualite'] || data.allocataire?.qualite || '',
+                  allocataire_prenom: data.allocataire_prenom || data['allocataire prenom'] || data.allocataire?.prenom || '',
+                  allocataire_nom: data.allocataire_nom || data['allocataire nom'] || data.allocataire?.nom || '',
+                  allocataire_email: data.allocataire_email || data['allocataire email'] || data.allocataire?.courriel || data.allocataire?.email || '',
+                  allocataire_telephone: data.allocataire_telephone || data['allocataire telephone'] || data.allocataire?.telephone || '',
+                  allocataire_matricule: data.allocataire_matricule || data['allocataire matricule'] || data.allocataire?.matricule || '',
+                  allocataire_code_org: data.allocataire_code_organisme || data['allocataire code organisme'] || data.allocataire?.code_organisme || '',
+                  adresse_nom: data.adresse_nom_adresse_postale || data['adresse nom adresse postale'] || data.adresse?.nom_adresse_postale || '',
+                  adresse_voie: data.adresse_voie || data['adresse voie'] || data.adresse?.voie || '',
+                  adresse_cp: data.adresse_code_postal || data['adresse code postal'] || data.adresse?.code_postal || '',
+                  adresse_code_insee: data.adresse_code_insee || data['adresse code insee'] || data.adresse?.code_insee || '',
+                  adresse_commune: data.adresse_commune || data['adresse commune'] || data.adresse?.commune || '',
+                  created: data.created || data.created_at || data['created'] || '',
+                  updated: data.updated || data.updated_at || data['updated'] || '',
+                  exercice_id: data.exercice_id || data['exercice id'] || '',
+                  child_firstname: data.child_firstname || data['child firstname'] || data['child_firstname'] || '',
+                  child_lastname: data.child_lastname || data['child lastname'] || data['child_lastname'] || '',
                 };
               
-                // Titre
+                // Construction du titre
                 let title = fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
-                            fields.email || fields.username || fields.url || fields.log_id || `Entrée ${idx + 1}`;
+                            fields.email || fields.username || fields.url || fields.log_id || 
+                            fields.id_psp || `Entrée ${idx + 1}`;
                 if (title.length > 60) title = title.slice(0, 60) + '...';
               
-                // Sous-titre
+                // Construction du sous-titre - comme dans l'exemple
                 const parts = [];
+
+                // Identité
+                if (fields.prenom && fields.nom) {
+                  parts.push(`👤 ${fields.prenom} ${fields.nom}`);
+                } else if (fields.nom) {
+                  parts.push(`👤 ${fields.nom}`);
+                } else if (fields.prenom) {
+                  parts.push(`👤 ${fields.prenom}`);
+                }
+
+                // Email
                 if (fields.email) parts.push(`📧 ${fields.email}`);
+
+                // Téléphone
                 if (fields.telephone) parts.push(`📱 ${fields.telephone}`);
+
+                // Ville
                 if (fields.ville) parts.push(`📍 ${fields.ville}`);
+
+                // Âge ou Date
                 if (fields.age) parts.push(`🎂 ${fields.age} ans`);
-                if (fields.date_naissance) parts.push(`📅 ${new Date(fields.date_naissance).toLocaleDateString('fr-FR')}`);
-                if (fields.username) parts.push(`👤 ${fields.username}`);
-                if (fields.log_id) parts.push(`🆔 ${truncateDisplayValue(fields.log_id, 12)}...`);
-                if (fields.pwned_at) parts.push(`⚠️ ${new Date(fields.pwned_at).toLocaleDateString('fr-FR')}`);
-                
-                if (fields.allocataire) {
+                if (fields.date_naissance) {
+                  try {
+                    const d = new Date(fields.date_naissance);
+                    if (!isNaN(d)) parts.push(`📅 ${d.toLocaleDateString('fr-FR')}`);
+                  } catch(e) {}
+                }
+
+                // Username
+                if (fields.username && !fields.email) parts.push(`👤 ${fields.username}`);
+
+                // Log ID
+                if (fields.log_id && fields.log_id.length > 8) {
+                  parts.push(`🆔 ${fields.log_id.slice(0, 12)}...`);
+                }
+
+                // ID PSP
+                if (fields.id_psp) parts.push(`🪪 ${fields.id_psp}`);
+
+                // Date compromise
+                if (fields.pwned_at) {
+                  try {
+                    const d = new Date(fields.pwned_at);
+                    if (!isNaN(d)) parts.push(`⚠️ ${d.toLocaleDateString('fr-FR')}`);
+                  } catch(e) {}
+                }
+
+                // Allocataire (parent)
+                if (fields.allocataire_prenom && fields.allocataire_nom) {
+                  parts.push(`👨‍👩‍👦 ${fields.allocataire_prenom} ${fields.allocataire_nom}`);
+                } else if (fields.allocataire) {
                   const alloc = fields.allocataire;
-                  const allocName = `${alloc.prenom || ''} ${alloc.nom || ''}`.trim();
-                  if (allocName) parts.push(`👨‍👩‍👦 Parent: ${allocName}`);
+                  const allocName = `${alloc.prenom || alloc.Prenom || ''} ${alloc.nom || alloc.Nom || ''}`.trim();
+                  if (allocName) parts.push(`👨‍👩‍👦 ${allocName}`);
                 }
               
+                // Enfants
                 if (fields.enfants.length > 0) {
-                  const enfantsNames = fields.enfants.map(e => `${e.prenom || ''} ${e.nom || ''}`.trim()).filter(Boolean);
+                  const enfantsNames = fields.enfants.map(e => `${e.prenom || e.Prenom || ''} ${e.nom || e.Nom || ''}`.trim()).filter(Boolean);
                   if (enfantsNames.length > 0) {
-                    parts.push(`👶 Enfants: ${enfantsNames.slice(0, 3).join(', ')}${enfantsNames.length > 3 ? ` +${enfantsNames.length - 3}` : ''}`);
+                    parts.push(`👶 ${enfantsNames.slice(0, 3).join(', ')}${enfantsNames.length > 3 ? ` +${enfantsNames.length - 3}` : ''}`);
                   }
                 }
+
+                if (fields.child_firstname) {
+                  parts.push(`👶 ${fields.child_firstname} ${fields.child_lastname || ''}`.trim());
+                }
+              
+                // Base
+                if (fields.dbname) parts.push(`📁 ${fields.dbname}`);
+                if (fields.organisme) parts.push(`🏛️ ${fields.organisme}`);
+                if (fields.situation) parts.push(`📋 ${fields.situation}`);
               
                 const subtitle = parts.join(' • ');
               
-                // Champs supplémentaires
+                // Tags d'informations supplémentaires
                 const extra = [];
-                if (fields.nom && cat.type === 'local') extra.push({ label: 'Nom', value: fields.nom });
-                if (fields.prenom && cat.type === 'local') extra.push({ label: 'Prénom', value: fields.prenom });
-                if (fields.date_naissance && cat.type === 'local') extra.push({ label: 'Né(e)', value: new Date(fields.date_naissance).toLocaleDateString('fr-FR') });
-                if (fields.adresse && cat.type === 'local') extra.push({ label: 'Adresse', value: fields.adresse.slice(0, 50) });
-                if (fields.ville && cat.type === 'local') extra.push({ label: 'Ville', value: fields.ville });
-                if (fields.sexe && cat.type === 'local') extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? 'F' : fields.sexe === 'M' ? 'M' : fields.sexe });
-                if (fields.log_id && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'Log ID', value: truncateDisplayValue(fields.log_id, 16) + '...' });
+
+                // Pour Local / CAF / ULP
+                if (cat.type === 'local') {
+                  if (fields.nom) extra.push({ label: 'Nom', value: fields.nom });
+                  if (fields.prenom) extra.push({ label: 'Prénom', value: fields.prenom });
+                  if (fields.date_naissance) {
+                    try {
+                      const d = new Date(fields.date_naissance);
+                      if (!isNaN(d)) extra.push({ label: 'Né(e)', value: d.toLocaleDateString('fr-FR') });
+                    } catch(e) {}
+                  }
+                  if (fields.adresse) extra.push({ label: 'Adresse', value: fields.adresse.slice(0, 40) + (fields.adresse.length > 40 ? '...' : '') });
+                  if (fields.ville) extra.push({ label: 'Ville', value: fields.ville });
+                  if (fields.code_postal) extra.push({ label: 'CP', value: fields.code_postal });
+                  if (fields.pays) extra.push({ label: 'Pays', value: fields.pays });
+                  if (fields.sexe) extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? '♀' : fields.sexe === 'M' ? '♂' : fields.sexe });
+                  if (fields.age) extra.push({ label: 'Âge', value: fields.age });
+                  if (fields.id_psp) extra.push({ label: 'ID PSP', value: fields.id_psp });
+                  if (fields.organisme) extra.push({ label: 'Organisme', value: fields.organisme });
+                  if (fields.situation) extra.push({ label: 'Situation', value: fields.situation });
+                  if (fields.allocataire_prenom && fields.allocataire_nom) {
+                    extra.push({ label: 'Parent', value: `${fields.allocataire_prenom} ${fields.allocataire_nom}` });
+                  }
+                  if (fields.allocataire_qualite) extra.push({ label: 'Qualité', value: fields.allocataire_qualite });
+                  if (fields.allocataire_matricule) extra.push({ label: 'Matricule', value: fields.allocataire_matricule });
                 }
-                if (fields.archive_hash && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'Hash', value: truncateDisplayValue(fields.archive_hash, 16) + '...' });
+
+                // Pour Breach / Stealer / API
+                if (['breach', 'intelx', 'api', 'stealer'].includes(cat.type)) {
+                  if (fields.log_id) extra.push({ label: 'Log ID', value: fields.log_id.slice(0, 16) + '...' });
+                  if (fields.archive_hash) extra.push({ label: 'Hash', value: fields.archive_hash.slice(0, 16) + '...' });
+                  if (fields.username) extra.push({ label: 'Login', value: fields.username });
+                  if (fields.password) extra.push({ label: 'MDP', value: fields.password.length > 20 ? fields.password.slice(0, 20) + '...' : fields.password });
+                  if (fields.email && !extra.some(e => e.label === 'Email')) extra.push({ label: 'Email', value: fields.email });
+                  if (fields.telephone && !extra.some(e => e.label === 'Téléphone')) extra.push({ label: 'Téléphone', value: fields.telephone });
+                  if (fields.pwned_at) {
+                    try {
+                      const d = new Date(fields.pwned_at);
+                      if (!isNaN(d)) extra.push({ label: 'Compromis', value: d.toLocaleDateString('fr-FR') });
+                    } catch(e) {}
+                  }
+                  if (fields.url) extra.push({ label: 'URL', value: fields.url.slice(0, 35) + (fields.url.length > 35 ? '...' : '') });
                 }
-                if (fields.username && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'Login', value: fields.username });
-                }
-                if (fields.password && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'MDP', value: fields.password.slice(0, 20) });
-                }
-                if (fields.url && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'URL', value: fields.url.slice(0, 40) });
-                }
+              
+                // Limiter à 6 tags max
+                const displayExtra = extra.slice(0, 6);
+                const hasMore = extra.length > 6;
               
                 return (
                   <div 
                     key={idx}
                     onClick={() => setSelectedRecord(record)}
-                    className={`p-4 rounded-xl border ${cat.color} cursor-pointer transition-all duration-200 hover:scale-[1.01] group`}
+                    onContextMenu={(e) => { e.preventDefault(); handleCopy(JSON.stringify(record, null, 2), e); }}
+                    className={`p-4 rounded-xl border ${cat.color} cursor-pointer transition-all duration-200 hover:scale-[1.01] group relative`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`text-xl ${cat.iconColor} mt-0.5`}>{cat.icon}</div>
+                      <div className={`text-xl ${cat.iconColor} mt-0.5 shrink-0`}>{cat.icon}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <div className="font-medium text-white/90 text-base truncate">{title}</div>
-                          <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0">{cat.label}</span>
+                          <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0 ml-2">{cat.label}</span>
                         </div>
                         {subtitle && (
                           <div className="text-sm text-white/50 mt-1 truncate">{subtitle}</div>
                         )}
-                        {extra.length > 0 && (
+                        {displayExtra.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {extra.slice(0, 4).map((field, fi) => (
+                            {displayExtra.map((field, fi) => (
                               <span key={fi} className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60">
                                 {field.label}: <span className="text-white/80">{field.value}</span>
                               </span>
                             ))}
-                            {extra.length > 4 && (
-                              <span className="text-[10px] text-white/30">+{extra.length - 4}</span>
+                            {hasMore && (
+                              <span className="text-[10px] text-white/30">+{extra.length - 6}</span>
                             )}
                           </div>
                         )}
@@ -5122,37 +5244,19 @@ if (searchType === 'discord') {
                 );
               };
             
-              // Rendu des sections
-              const sectionColors = {
-                breach: 'border-red-500/30 text-red-400',
-                intelx: 'border-cyan-500/30 text-cyan-400',
-                api: 'border-purple-500/30 text-purple-400',
-                stealer: 'border-amber-500/30 text-amber-400',
-                local: 'border-emerald-500/30 text-emerald-400',
-                other: 'border-white/20 text-white/40',
-              };
-            
-              const sectionBg = {
-                breach: 'bg-red-500/5',
-                intelx: 'bg-cyan-500/5',
-                api: 'bg-purple-500/5',
-                stealer: 'bg-amber-500/5',
-                local: 'bg-emerald-500/5',
-                other: 'bg-white/5',
-              };
-            
+              // Rendu des sections par catégorie - STYLE COMME L'EXEMPLE
               return order.map(catType => {
                 const group = grouped[catType];
                 if (!group || group.records.length === 0) return null;
               
                 return (
-                  <div key={catType} className="mb-4">
-                    <div className={`flex items-center gap-3 mb-3 pb-2 border-b ${sectionColors[catType] || sectionColors.other}`}>
+                  <div key={catType} className="mb-6">
+                    <div className={`flex items-center gap-3 mb-3 pb-2 border-b ${catType === 'breach' ? 'border-red-500/30' : catType === 'intelx' ? 'border-cyan-500/30' : catType === 'api' ? 'border-purple-500/30' : catType === 'stealer' ? 'border-amber-500/30' : catType === 'local' ? 'border-emerald-500/30' : 'border-white/20'}`}>
                       <span className="text-xl">{group.icon}</span>
                       <h3 className="text-sm font-medium text-white/80">{group.label}</h3>
                       <span className="text-xs text-white/30">({group.records.length})</span>
                     </div>
-                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-xl ${sectionBg[catType] || sectionBg.other} border border-white/5`}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {group.records.map((record, idx) => renderCard(record, idx))}
                     </div>
                   </div>
