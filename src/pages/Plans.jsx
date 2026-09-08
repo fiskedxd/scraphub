@@ -17,7 +17,7 @@ export default function PlansPage() {
   const [loadingPlan, setLoadingPlan] = useState('');
   const [message, setMessage] = useState('');
   const [generatedKey, setGeneratedKey] = useState('');
-  const ownerAccount = user?.email?.toLowerCase() === 'slyre6@gmail.com';
+  const ownerAccount = user?.email?.toLowerCase() === 'slyre6w@gmail.com';
 
   useEffect(() => {
     fetch('/api/plans')
