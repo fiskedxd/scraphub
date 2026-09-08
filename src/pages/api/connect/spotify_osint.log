@@ -1,0 +1,15 @@
+2026-05-27 14:12:39,782 - ERROR - Please provide a Spotify URL or username
+2026-05-27 14:12:57,010 - INFO - ============================================================
+2026-05-27 14:12:57,611 - INFO - Method 1 found: 0 emails
+2026-05-27 14:13:03,458 - INFO - Method 2 found: 1 emails
+2026-05-27 14:13:15,384 - INFO - Method 3 found: 0 emails
+2026-05-27 14:13:31,247 - INFO - Method 4 found: 0 emails
+2026-05-27 14:13:42,126 - INFO - Method 8 found: 1 emails
+2026-05-27 14:13:42,128 - WARNING - Selenium not available, skipping advanced scraping
+2026-05-27 14:13:42,128 - INFO - Method 7 found: 0 emails
+2026-05-27 14:13:47,681 - INFO - Results saved to spotify_osint_results\spotify_31jwaokribj6tfmhq2bqgmpsj3na_20260527_141347.json
+2026-05-27 14:13:47,681 - INFO - 
+============================================================
+2026-05-27 14:13:47,683 - INFO - ============================================================
+2026-05-27 14:13:47,691 - INFO -   • %2231jwaokribj6tfmhq2bqgmpsj3na%22+%22@gmail.com%22+OR+%22@yahoo.com%22+OR+%22@hotmail.com
+2026-05-27 14:13:47,691 - INFO -   • exemple@exemple.com

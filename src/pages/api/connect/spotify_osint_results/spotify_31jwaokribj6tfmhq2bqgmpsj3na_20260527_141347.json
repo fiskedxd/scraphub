@@ -1,0 +1,15 @@
+{
+  "spotify_id": "31jwaokribj6tfmhq2bqgmpsj3na",
+  "spotify_url": "https://open.spotify.com/user/31jwaokribj6tfmhq2bqgmpsj3na",
+  "emails_found": [
+    "%2231jwaokribj6tfmhq2bqgmpsj3na%22+%22@gmail.com%22+OR+%22@yahoo.com%22+OR+%22@hotmail.com",
+    "exemple@exemple.com"
+  ],
+  "methods_used": [
+    "google_dorking",
+    "reverse_username_lookup"
+  ],
+  "timestamp": "2026-05-27T14:12:57.004798",
+  "confidence_score": 30,
+  "breaches": {}
+}
