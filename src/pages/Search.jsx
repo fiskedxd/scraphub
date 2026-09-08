@@ -4999,8 +4999,14 @@ if (searchType === 'discord') {
                 const data = record.parsedData || record;
                 const text = JSON.stringify(data).toLowerCase();
 
-                if (String(data.service_id || '').toLowerCase() === 'oathnet') {
+                const serviceId = String(data.service_id || '').toLowerCase();
+
+                if (serviceId === 'oathnet') {
                   return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/70' };
+                }
+
+                if (serviceId === 'oathnet-stealer') {
+                  return { type: 'stealer', label: 'ScrapHub • Logs', icon: Icons.file, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
                 // Détection des types de données
@@ -5404,8 +5410,9 @@ if (searchType === 'discord') {
 
               return (
                 <>
-                  {renderGroups('Résultats API', ['intelx', 'api', 'stealer'], Icons.shield)}
+                  {renderGroups('Résultats API', ['intelx', 'api'], Icons.shield)}
                   {renderGroups('Résultats Breach', ['breach'], Icons.breach)}
+                  {renderGroups('Résultats logs', ['stealer'], Icons.file)}
                   {renderGroups('Résultats locaux', ['local', 'other'], Icons.database)}
                 </>
               );
