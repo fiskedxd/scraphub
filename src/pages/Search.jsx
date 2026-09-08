@@ -4935,7 +4935,7 @@ if (searchType === 'discord') {
         {(searchType === 'data' || searchType === 'domain') && results && results.success && !showGraph && !selectedRecord && results.allRecords && results.allRecords.length > 0 && (
           <div className="mt-6 space-y-6">
             {/* En-tête */}
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/5 p-4 flex items-center justify-between flex-wrap gap-3">
+            <div className="bg-black rounded-2xl border border-white/[0.08] p-4 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-white/90">Résultats</h2>
                 <p className="text-white/30 text-xs">Recherche: "{results.searchTerm}"</p>
@@ -4958,33 +4958,32 @@ if (searchType === 'discord') {
                 // Détection des types de données
                 if (source.includes('breach') || source.includes('oath') || source.includes('leak') || 
                     text.includes('breach') || text.includes('oathnet') || text.includes('credential') || 
-                    text.includes('pwn') || text.includes('dump') || text.includes('pass.sports') ||
-                    text.includes('caf') || text.includes('allocataire')) {
-                    return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
+                  text.includes('pwn') || text.includes('dump') || text.includes('pass.sports')) {
+                    return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-red-500/20 bg-black', iconColor: 'text-red-400' };
                 }
               
                 if (source.includes('intelx') || text.includes('intelx') || 
                     text.includes('systemid') || text.includes('bucket')) {
-                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: Icons.info, color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
+                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: Icons.info, color: 'border-cyan-500/20 bg-black', iconColor: 'text-cyan-400' };
                 }
               
                 if (source.includes('lookup2bz') || source.includes('blacksanta') || source.includes('api') ||
                     text.includes('lookup2bz') || text.includes('blacksanta') ||
                     data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'api', label: 'ScrapHub • API', icon: Icons.search, color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
+                  return { type: 'api', label: 'ScrapHub • API', icon: Icons.search, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
                 if (source.includes('stealer') || data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: Icons.file, color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
+                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: Icons.file, color: 'border-amber-500/20 bg-black', iconColor: 'text-amber-400' };
                 }
               
                 if (source.includes('ulp') || source.includes('local') || source.includes('sqlite') ||
                     data.nom || data.prenom || data.adresse || data.allocataire || data.ville ||
                     data.adresse_voie || data.allocataire_prenom) {
-                  return { type: 'local', label: 'ScrapHub • Local', icon: Icons.database, color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
+                  return { type: 'local', label: 'ScrapHub • Local', icon: Icons.database, color: 'border-emerald-500/20 bg-black', iconColor: 'text-emerald-400' };
                 }
               
-                return { type: 'other', label: 'ScrapHub • Autre', icon: Icons.info, color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
+                return { type: 'other', label: 'ScrapHub • Autre', icon: Icons.info, color: 'border-white/10 bg-black', iconColor: 'text-white/40' };
               };
             
               // Grouper les résultats
@@ -5083,9 +5082,9 @@ if (searchType === 'discord') {
                 };
               
                 // Construction du titre
-                let title = fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
+                let title = String(fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
                             fields.email || fields.username || fields.url || fields.log_id || 
-                            fields.id_psp || `Entrée ${idx + 1}`;
+                            fields.id_psp || `Entrée ${idx + 1}`);
                 if (title.length > 60) title = title.slice(0, 60) + '...';
               
                 // Construction du sous-titre - comme dans l'exemple
@@ -5217,62 +5216,80 @@ if (searchType === 'discord') {
                 }
               
                 // Limiter à 6 tags max
-                const displayExtra = extra.slice(0, 6);
-                const hasMore = extra.length > 6;
+                const displayExtra = extra;
               
                 return (
                   <div 
                     key={idx}
-                    onClick={() => setSelectedRecord(record)}
                     onContextMenu={(e) => { e.preventDefault(); handleCopy(JSON.stringify(record, null, 2), e); }}
-                    className={`p-4 rounded-xl border ${cat.color} cursor-pointer transition-all duration-200 hover:scale-[1.01] group relative`}
+                    className={`rounded-xl border ${cat.color} cursor-pointer transition-colors duration-200 hover:border-white/[0.16] hover:bg-white/[0.018] group relative overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.18)]`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={`text-xl ${cat.iconColor} mt-0.5 shrink-0`}>{cat.icon}</div>
-                      <div className="flex-1 min-w-0">
+                    <div className="p-4 sm:p-5">
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.04] ${cat.iconColor} ring-1 ring-white/[0.08]`}>{cat.icon}</div>
+                        <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <div className="font-medium text-white/90 text-base truncate">{title}</div>
-                          <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0 ml-2">{cat.label}</span>
+                          <span className="inline-flex items-center rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/50 shrink-0 ml-2">{cat.label}</span>
                         </div>
                         {subtitle && (
-                          <div className="text-sm text-white/50 mt-1 truncate">{subtitle}</div>
+                          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/45">{subtitle}</div>
                         )}
                         {displayExtra.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {displayExtra.map((field, fi) => (
-                              <span key={fi} className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60">
+                              <span key={fi} className="rounded-md border border-white/[0.06] bg-white/[0.025] px-2 py-1 text-[10px] text-white/55">
                                 {field.label}: <span className="text-white/80">{field.value}</span>
                               </span>
                             ))}
-                            {hasMore && (
-                              <span className="text-[10px] text-white/30">+{extra.length - 6}</span>
-                            )}
                           </div>
                         )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               };
             
-              // Rendu des sections par catégorie - STYLE COMME L'EXEMPLE
-              return order.map(catType => {
-                const group = grouped[catType];
-                if (!group || group.records.length === 0) return null;
-              
+              const renderGroups = (sectionTitle, sectionTypes, sectionIcon) => {
+                const sectionGroups = sectionTypes
+                  .map((catType) => grouped[catType])
+                  .filter((group) => group && group.records.length > 0);
+                if (sectionGroups.length === 0) return null;
+
                 return (
-                  <div key={catType} className="mb-6">
-                    <div className={`flex items-center gap-3 mb-3 pb-2 border-b ${catType === 'breach' ? 'border-red-500/30' : catType === 'intelx' ? 'border-cyan-500/30' : catType === 'api' ? 'border-purple-500/30' : catType === 'stealer' ? 'border-amber-500/30' : catType === 'local' ? 'border-emerald-500/30' : 'border-white/20'}`}>
-                      <span className="text-xl">{group.icon}</span>
-                      <h3 className="text-sm font-medium text-white/80">{group.label}</h3>
-                      <span className="text-xs text-white/30">({group.records.length})</span>
+                  <section className="mb-8 rounded-2xl border border-white/[0.08] bg-black p-4 sm:p-5">
+                    <div className="mb-4 flex items-center gap-3 border-b border-white/[0.08] pb-3">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.04] text-white/70 ring-1 ring-white/[0.08]">{sectionIcon}</span>
+                      <h2 className="text-base font-semibold text-white">{sectionTitle}</h2>
+                      <span className="text-xs text-white/35">
+                        {sectionGroups.reduce((total, group) => total + group.records.length, 0)} entrées
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {group.records.map((record, idx) => renderCard(record, idx))}
+                    <div className="space-y-6">
+                      {sectionGroups.map((group) => (
+                        <div key={group.type}>
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.04] ${group.iconColor}`}>{group.icon}</span>
+                            <h3 className="text-sm font-semibold text-white/75">{group.label}</h3>
+                            <span className="text-xs text-white/30">{group.records.length} entrées</span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3">
+                            {group.records.map((record, idx) => renderCard(record, idx))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  </section>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderGroups('Résultats API', ['breach', 'intelx', 'api', 'stealer'], Icons.shield)}
+                  {renderGroups('Résultats locaux', ['local', 'other'], Icons.database)}
+                </>
+              );
             })()}
           </div>
         )}
