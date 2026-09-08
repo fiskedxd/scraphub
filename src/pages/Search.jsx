@@ -4956,15 +4956,19 @@ if (searchType === 'discord') {
                 const text = JSON.stringify(data).toLowerCase();
               
                 // Détection des types de données
+                if (data.log_id || data.archive_hash || data.pwned_at) {
+                  return { type: 'stealer', label: 'ScrapHub • Logs', icon: Icons.file, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
+                }
+
                 if (source.includes('breach') || source.includes('oath') || source.includes('leak') || 
                     text.includes('breach') || text.includes('oathnet') || text.includes('credential') || 
                   text.includes('pwn') || text.includes('dump') || text.includes('pass.sports')) {
-                    return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-red-500/20 bg-black', iconColor: 'text-red-400' };
+                    return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/70' };
                 }
               
                 if (source.includes('intelx') || text.includes('intelx') || 
                     text.includes('systemid') || text.includes('bucket')) {
-                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: Icons.info, color: 'border-cyan-500/20 bg-black', iconColor: 'text-cyan-400' };
+                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: Icons.info, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
                 if (source.includes('lookup2bz') || source.includes('blacksanta') || source.includes('api') ||
@@ -4973,14 +4977,14 @@ if (searchType === 'discord') {
                   return { type: 'api', label: 'ScrapHub • API', icon: Icons.search, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
-                if (source.includes('stealer') || data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: Icons.file, color: 'border-amber-500/20 bg-black', iconColor: 'text-amber-400' };
+                if (source.includes('stealer')) {
+                  return { type: 'stealer', label: 'ScrapHub • Logs', icon: Icons.file, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
                 if (source.includes('ulp') || source.includes('local') || source.includes('sqlite') ||
                     data.nom || data.prenom || data.adresse || data.allocataire || data.ville ||
                     data.adresse_voie || data.allocataire_prenom) {
-                  return { type: 'local', label: 'ScrapHub • Local', icon: Icons.database, color: 'border-emerald-500/20 bg-black', iconColor: 'text-emerald-400' };
+                  return { type: 'local', label: 'ScrapHub • Local', icon: Icons.database, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/60' };
                 }
               
                 return { type: 'other', label: 'ScrapHub • Autre', icon: Icons.info, color: 'border-white/10 bg-black', iconColor: 'text-white/40' };
@@ -5085,7 +5089,6 @@ if (searchType === 'discord') {
                 let title = String(fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
                             fields.email || fields.username || fields.url || fields.log_id || 
                             fields.id_psp || `Entrée ${idx + 1}`);
-                if (title.length > 60) title = title.slice(0, 60) + '...';
               
                 // Construction du sous-titre - comme dans l'exemple
                 const parts = [];
@@ -5121,8 +5124,8 @@ if (searchType === 'discord') {
                 if (fields.username && !fields.email) parts.push({ icon: Icons.user, text: fields.username });
                 
                 // Log ID
-                if (fields.log_id && String(fields.log_id).length > 8) {
-                  parts.push({ icon: Icons.idCard, text: `${safeSlice(fields.log_id, 12)}...` });
+                if (fields.log_id) {
+                  parts.push({ icon: Icons.idCard, text: String(fields.log_id) });
                 }
                 
                 // ID PSP
@@ -5200,10 +5203,10 @@ if (searchType === 'discord') {
                 
                 // Pour Breach / Stealer / API
                 if (['breach', 'intelx', 'api', 'stealer'].includes(cat.type)) {
-                  if (fields.log_id) extra.push({ label: 'Log ID', value: safeSlice(fields.log_id, 16) + '...' });
-                  if (fields.archive_hash) extra.push({ label: 'Hash', value: safeSlice(fields.archive_hash, 16) + '...' });
+                  if (fields.log_id) extra.push({ label: 'Log ID', value: String(fields.log_id) });
+                  if (fields.archive_hash) extra.push({ label: 'Hash', value: String(fields.archive_hash) });
                   if (fields.username) extra.push({ label: 'Login', value: fields.username });
-                  if (fields.password) extra.push({ label: 'MDP', value: fields.password.length > 20 ? fields.password.slice(0, 20) + '...' : fields.password });
+                  if (fields.password) extra.push({ label: 'MDP', value: String(fields.password) });
                   if (fields.email && !extra.some(e => e.label === 'Email')) extra.push({ label: 'Email', value: fields.email });
                   if (fields.telephone && !extra.some(e => e.label === 'Téléphone')) extra.push({ label: 'Téléphone', value: fields.telephone });
                   if (fields.pwned_at) {
@@ -5212,8 +5215,25 @@ if (searchType === 'discord') {
                       if (!isNaN(d)) extra.push({ label: 'Compromis', value: d.toLocaleDateString('fr-FR') });
                     } catch(e) {}
                   }
-                  if (fields.url) extra.push({ label: 'URL', value: fields.url.slice(0, 35) + (fields.url.length > 35 ? '...' : '') });
+                  if (fields.url) extra.push({ label: 'URL', value: String(fields.url) });
                 }
+
+                const displayedKeys = new Set([
+                  'nom', 'last_name', 'lastName', 'surname', 'family_name', 'prenom', 'first_name', 'firstName',
+                  'given_name', 'givenName', 'nom_complet', 'full_name', 'name', 'fullName', 'email', 'courriel',
+                  'mail', 'email_address', 'telephone', 'phone', 'phone_number', 'phone_national', 'tel', 'mobile',
+                  'date_naissance', 'birth_date', 'birthDate', 'dob', 'date_birth', 'birthday', 'adresse', 'address',
+                  'ville', 'city', 'town', 'commune', 'code_postal', 'postal_code', 'zip_code', 'postcode', 'country',
+                  'pays', 'age', 'years_old', 'age_years', 'sexe', 'gender', 'sex', 'genre', 'log_id', 'id', 'archive_hash',
+                  'hash', 'pwned_at', 'indexed_at', 'username', 'pseudo', 'login', 'user', 'screen_name', 'password',
+                  'pwd', 'pass', 'passphrase', 'secret', 'url', 'website', 'domain', 'source_url', 'source', 'provider',
+                  'category', 'api_name'
+                ]);
+                Object.entries(data).forEach(([key, value]) => {
+                  if (displayedKeys.has(key) || value === null || value === undefined || value === '') return;
+                  const formattedValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                  if (formattedValue) extra.push({ label: key, value: formattedValue });
+                });
               
                 // Limiter à 6 tags max
                 const displayExtra = extra;
@@ -5267,18 +5287,31 @@ if (searchType === 'discord') {
                       </span>
                     </div>
                     <div className="space-y-6">
-                      {sectionGroups.map((group) => (
-                        <div key={group.type}>
+                      {sectionGroups.map((group) => {
+                        const groupHeader = (
                           <div className="mb-3 flex items-center gap-2">
                             <span className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.04] ${group.iconColor}`}>{group.icon}</span>
                             <h3 className="text-sm font-semibold text-white/75">{group.label}</h3>
                             <span className="text-xs text-white/30">{group.records.length} entrées</span>
                           </div>
+                        );
+                        const groupCards = (
                           <div className="grid grid-cols-1 gap-3">
                             {group.records.map((record, idx) => renderCard(record, idx))}
                           </div>
-                        </div>
-                      ))}
+                        );
+
+                        if (group.type === 'stealer') {
+                          return (
+                            <details key={group.type} className="rounded-xl border border-white/[0.08] bg-black" open={false}>
+                              <summary className="cursor-pointer list-none p-3 [&::-webkit-details-marker]:hidden">{groupHeader}</summary>
+                              <div className="border-t border-white/[0.08] p-3">{groupCards}</div>
+                            </details>
+                          );
+                        }
+
+                        return <div key={group.type}>{groupHeader}{groupCards}</div>;
+                      })}
                     </div>
                   </section>
                 );
