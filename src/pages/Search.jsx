@@ -2919,7 +2919,7 @@ if (searchType === 'discord') {
     });
 
     return (
-      <div className="mb-6 bg-black rounded-2xl border border-white/10 overflow-hidden">
+      <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl shadow-black/50">
         <div className="p-4 border-b border-white/10 bg-black">
           <h3 className="text-sm font-medium text-white/70 flex items-center gap-2">
             Technologies détectées ({technologies.size})
@@ -4349,7 +4349,21 @@ if (searchType === 'discord') {
               </div>
             ))}
           </div>
-          <p className="mt-4 text-[11px] text-white/35">Vue limitée aux métadonnées. Les fichiers privés du log ne sont pas ouverts ni téléchargés.</p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-black p-3">
+            <p className="text-[11px] text-white/35">Vue limitée aux métadonnées.</p>
+            <button
+              type="button"
+              onClick={() => {
+                const { logId } = logDetailItem;
+                setLogDetailItem(null);
+                handleVictimManifest(logId);
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200 transition hover:border-amber-300/40 hover:bg-amber-500/20"
+            >
+              {Icons.folder}
+              Open victim
+            </button>
+          </div>
         </div>
       </div>
     );
