@@ -141,6 +141,11 @@ const sanitizeDisplayText = (text) => {
   return cleaned.trim();
 };
 
+const truncateDisplayValue = (value, length) => {
+  if (value === null || value === undefined) return '';
+  return String(value).slice(0, length);
+};
+
 const sanitizeSensitiveValue = (value) => {
   if (value === null || value === undefined) return '';
   let sanitized = String(value).trim();
@@ -4244,7 +4249,7 @@ if (searchType === 'discord') {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-2">
               {Icons.folder}
-              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${victimLogId.slice(0, 8)}`}</h3>
+              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${truncateDisplayValue(victimLogId, 8)}`}</h3>
               <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-white/50">
                 {victimManifest.unlocked ? Icons.unlock : Icons.lock}
                 {victimManifest.unlocked ? ' Déverrouillé' : ' 1 crédit'}
@@ -4785,7 +4790,7 @@ if (searchType === 'discord') {
                               <div className="text-sm text-white/80 break-all">{item.url || item.login || item.password || JSON.stringify(item)}</div>
                               {item.login && <div className="text-[11px] text-white/40 mt-1">Login: {item.login}</div>}
                               {item.password && <div className="text-[11px] text-white/40 mt-1">Mot de passe: {item.password}</div>}
-                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{logId.slice(0, 16)}...</div>}
+                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{truncateDisplayValue(logId, 16)}...</div>}
                             </div>
                             <div className="flex gap-1">
                               {logId && (
@@ -5041,7 +5046,7 @@ if (searchType === 'discord') {
                 if (fields.age) parts.push(`🎂 ${fields.age} ans`);
                 if (fields.date_naissance) parts.push(`📅 ${new Date(fields.date_naissance).toLocaleDateString('fr-FR')}`);
                 if (fields.username) parts.push(`👤 ${fields.username}`);
-                if (fields.log_id) parts.push(`🆔 ${fields.log_id.slice(0, 12)}...`);
+                if (fields.log_id) parts.push(`🆔 ${truncateDisplayValue(fields.log_id, 12)}...`);
                 if (fields.pwned_at) parts.push(`⚠️ ${new Date(fields.pwned_at).toLocaleDateString('fr-FR')}`);
                 
                 if (fields.allocataire) {
@@ -5068,10 +5073,10 @@ if (searchType === 'discord') {
                 if (fields.ville && cat.type === 'local') extra.push({ label: 'Ville', value: fields.ville });
                 if (fields.sexe && cat.type === 'local') extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? 'F' : fields.sexe === 'M' ? 'M' : fields.sexe });
                 if (fields.log_id && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'Log ID', value: fields.log_id.slice(0, 16) + '...' });
+                  extra.push({ label: 'Log ID', value: truncateDisplayValue(fields.log_id, 16) + '...' });
                 }
                 if (fields.archive_hash && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
-                  extra.push({ label: 'Hash', value: fields.archive_hash.slice(0, 16) + '...' });
+                  extra.push({ label: 'Hash', value: truncateDisplayValue(fields.archive_hash, 16) + '...' });
                 }
                 if (fields.username && (cat.type === 'breach' || cat.type === 'intelx' || cat.type === 'api' || cat.type === 'stealer')) {
                   extra.push({ label: 'Login', value: fields.username });
