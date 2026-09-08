@@ -69,10 +69,23 @@ const NavBar = () => {
     { to: "/search", label: "Search" },
     { to: "/chat", label: "Chat" },
     { to: "/profile", label: "Profil" },
-    { to: "/settings", label: "Paramètres" }
+    { to: "/settings", label: "Paramètres" },
+    { to: "/plans", label: "Plans & tarifs" },
+    { to: "/docs", label: "API Docs" }
   ];
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <nav className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 p-2 backdrop-blur-md">
+        <Link to="/plans" className="rounded-xl px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white">
+          Plans & tarifs
+        </Link>
+        <Link to="/docs" className="rounded-xl px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white">
+          API Docs
+        </Link>
+      </nav>
+    );
+  }
 
   return (
     <>

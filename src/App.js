@@ -20,6 +20,8 @@ import LogsPage from './pages/Logs';
 import SearcherPage from './pages/Searcher';
 import GeoPage from './pages/GeoPage';
 import AdminPage from './pages/AdminPage';
+import PlansPage from './pages/Plans';
+import ApiDocsPage from './pages/ApiDocs';
 
 function App() {
   return (
@@ -123,6 +125,8 @@ function AppContent() {
         <Route path="/u/:username" element={<PublicProfilePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/plans" element={<PlansPage />} />
+        <Route path="/docs" element={<ApiDocsPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/GeoPage" element={<GeoPage />} />
