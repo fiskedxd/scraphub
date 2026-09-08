@@ -3883,10 +3883,17 @@ if (searchType === 'discord') {
       const members = extractFamilyMembers(data, record.source || 'unknown');
       setFamilyMembers(members);
 
+      const addressValue = data.adresse && typeof data.adresse === 'object'
+        ? `${data.adresse.voie || ''}, ${data.adresse.code_postal || ''} ${data.adresse.commune || ''}`.trim()
+        : data.adresse_complete || data.address || '';
+      if (addressValue && !hasRequestedGeocode) {
+        geocodeAddress(addressValue);
+      }
+
       return () => {
         addressSearchAbortRef.current?.abort();
       };
-    }, [record.source, data.prenom, data.nom, data.telephone, data.allocataire?.telephone, data.adresse?.voie, data.adresse?.code_postal, data.adresse?.commune]);
+    }, [record.source, data.prenom, data.nom, data.telephone, data.allocataire?.telephone, data.adresse?.voie, data.adresse?.code_postal, data.adresse?.commune, data.adresse_complete, data.address, hasRequestedGeocode]);
     
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
@@ -5263,6 +5270,19 @@ if (searchType === 'discord') {
                               </span>
                             ))}
                           </div>
+                        )}
+                        {cat.type === 'local' && fields.adresse && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedRecord(record);
+                            }}
+                            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/65 transition hover:bg-white/[0.07] hover:text-white"
+                          >
+                            {Icons.location}
+                            Chercher les voisins
+                          </button>
                         )}
                         </div>
                       </div>
