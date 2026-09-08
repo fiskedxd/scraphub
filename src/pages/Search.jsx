@@ -4926,113 +4926,57 @@ if (searchType === 'discord') {
           </div>
         )}
         
-        {(searchType === 'data' || searchType === 'domain') && results && results.success && !showGraph && !selectedRecord && results.allRecords && results.allRecords.length > 0 && (() => {
-          const orderedGroups = [
-            { key: 'breach', label: 'ScrapHub • Breach', color: 'border-rose-500/30 bg-rose-500/5 text-rose-200' },
-            { key: 'ip', label: 'ScrapHub • IP Intelligence', color: 'border-cyan-500/30 bg-cyan-500/5 text-cyan-200' },
-            { key: 'platform', label: 'ScrapHub • Platform', color: 'border-violet-500/30 bg-violet-500/5 text-violet-200' },
-            { key: 'intelligence', label: 'ScrapHub • Intelligence', color: 'border-amber-500/30 bg-amber-500/5 text-amber-200' },
-            { key: 'local', label: 'Local DB', color: 'border-white/15 bg-white/5 text-white/80' },
-          ];
-
-          const groupMap = new Map(orderedGroups.map((group) => [group.key, []]));
-
-          results.allRecords.forEach((record) => {
-            const payload = record.parsedData || record;
-            const sourceText = String(record.source || payload.source || '').toLowerCase();
-            const categoryText = String(record.category || payload.category || '').toLowerCase();
-            const haystack = `${sourceText} ${categoryText} ${flattenRecordToText(record)}`.toLowerCase();
-
-            if (/breach|leak|dump|pwn|credential|victim|password/.test(haystack) || sourceText.includes('oathnet') || sourceText.includes('breach')) {
-              groupMap.get('breach').push(record);
-              return;
-            }
-            if (/ip|asn|geo|isp|vpn|tor|network|country/.test(haystack)) {
-              groupMap.get('ip').push(record);
-              return;
-            }
-            if (/platform|roblox|minecraft|fivem|steam|discord|game|gaming/.test(haystack)) {
-              groupMap.get('platform').push(record);
-              return;
-            }
-            if (/intelx|osint|identity|profile|analysis|intelligence/.test(haystack)) {
-              groupMap.get('intelligence').push(record);
-              return;
-            }
-            groupMap.get('local').push(record);
-          });
-
-          const renderValue = (label, value) => {
-            if (!value && value !== 0) return null;
-            return (
-              <div className="flex items-start gap-2 text-[11px] text-white/60">
-                <span className="text-white/35 uppercase tracking-[0.18em]">{label}</span>
-                <span className="text-white/80 break-all">{String(value)}</span>
+        {(searchType === 'data' || searchType === 'domain') && results && results.success && !showGraph && !selectedRecord && results.allRecords && results.allRecords.length > 0 && (
+          <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
+            <div className="p-5 border-b border-white/[0.06] bg-black">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div><h2 className="text-lg font-semibold">Résultats</h2><p className="text-white/40 text-xs">Recherche: "{results.searchTerm}"</p></div>
+                <div><span className="text-2xl font-bold">{results.totalMatches}</span><span className="text-white/40 text-xs ml-1">entrées</span></div>
               </div>
-            );
-          };
-
-          const renderRecordCard = (record, idx) => {
-            const payload = record.parsedData || record;
-            const fullName = [payload.prenom || payload.first_name || payload.firstName || '', payload.nom || payload.last_name || payload.lastName || '']
-              .filter(Boolean)
-              .join(' ')
-              .trim();
-            const email = payload.email || payload.courriel || payload.mail || '';
-            const phone = payload.telephone || payload.phone || payload.phone_number || payload.phone_national || '';
-            const birth = payload.date_naissance || payload.birth_date || payload.birthDate || payload.dob || '';
-            const age = payload.age || payload.years_old || payload.age_years || '';
-            const url = payload.url || payload.domain || payload.website || payload.source || '';
-
-            return (
-              <div key={`${record.source || 'record'}-${idx}`} className="rounded-xl border border-white/[0.07] bg-black/40 p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-white break-all">{fullName || payload.name || payload.full_name || payload.id || `Entrée ${idx + 1}`}</div>
-                  <span className="text-[10px] px-2 py-1 rounded-full bg-white/5 text-white/40">{record.source || payload.source || 'local'}</span>
-                </div>
-                <div className="space-y-1">
-                  {renderValue('Nom', payload.nom || payload.last_name || payload.lastName)}
-                  {renderValue('Prénom', payload.prenom || payload.first_name || payload.firstName)}
-                  {renderValue('Age', age)}
-                  {renderValue('Naissance', birth)}
-                  {renderValue('Email', email)}
-                  {renderValue('Téléphone', phone)}
-                  {renderValue('URL/Domaine', url)}
-                </div>
-              </div>
-            );
-          };
-
-          return (
-            <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
-              <div className="p-5 border-b border-white/[0.06] bg-black">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div><h2 className="text-lg font-semibold">Résultats</h2><p className="text-white/40 text-xs">Recherche: "{results.searchTerm}"</p></div>
-                  <div><span className="text-2xl font-bold">{results.totalMatches}</span><span className="text-white/40 text-xs ml-1">entrées</span></div>
-                </div>
-              </div>
-
-              <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
-                {orderedGroups.map((group) => {
-                  const items = groupMap.get(group.key) || [];
-                  if (!items.length) return null;
-
+            </div>
+            <div className="p-5">
+              <h3 className="text-xs font-medium text-white/50 mb-3 flex items-center gap-2">{Icons.copy} Résultats ({results.totalMatches} entrées)</h3>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {results.allRecords?.map((record, idx) => {
+                  const data = record.parsedData || record;
+                  const displayName = data.prenom || data.nom_complet || data.email || data.courriel || `Entrée ${idx + 1}`;
+                  const contentSnippet = flattenRecordToText(record).slice(0, 140);
+                  const detectedDomains = extractDomainsFromText(contentSnippet);
                   return (
-                    <div key={group.key} className={`rounded-2xl border p-3 ${group.color}`}>
-                      <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-xs uppercase tracking-[0.2em] font-medium">{group.label}</h3>
-                        <span className="text-[10px] px-2 py-1 rounded-full bg-black/20">{items.length}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {items.map(renderRecordCard)}
+                    <div key={idx} onClick={() => setSelectedRecord(record)} onContextMenu={(e) => handleCopy(JSON.stringify(record, null, 2), e)} className="p-3 rounded-lg border border-white/[0.06] bg-black hover:bg-white/[0.08] cursor-pointer transition group">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-sm font-medium text-white">{displayName}</span>
+                            <span className={`text-xs font-mono px-2 py-0.5 rounded ${String(record.source).toLowerCase().includes('stealer') ? 'bg-amber-500/20 text-amber-300' : 'bg-purple-500/10 text-purple-300'}`}>{record.source}</span>
+                          </div>
+                          <div className="flex gap-3 text-xs text-white/40">
+                            {data.nom && <span>Nom: {data.nom}</span>}
+                            {data.prenom && <span>Prénom: {data.prenom}</span>}
+                            {data.date_naissance && <span>Né(e): {new Date(data.date_naissance).toLocaleDateString('fr-FR')}</span>}
+                            {data.allocataire?.prenom && data.allocataire?.nom && <span>Parent: {data.allocataire.prenom} {data.allocataire.nom}</span>}
+                          </div>
+                          <div className="text-white/50 text-xs font-mono mt-1 break-all">{renderTextWithLinks(contentSnippet, 'text-white/50 text-xs font-mono mt-1')}</div>
+                          {detectedDomains.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {detectedDomains.slice(0, 4).map((domain, di) => (
+                                <a key={`${domain}-${di}`} href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="text-[10px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded">
+                                  {domain}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <button className="opacity-0 group-hover:opacity-100 transition p-1" onClick={(e) => { e.stopPropagation(); handleCopy(JSON.stringify(record, null, 2), e); }}>{Icons.copy}</button>
                       </div>
                     </div>
                   );
                 })}
               </div>
+              {results.allRecords?.length > 100 && <div className="mt-4 text-center text-white/40 text-xs">+ {results.allRecords.length - 100} résultats supplémentaires</div>}
             </div>
-          );
-        })()}
+          </div>
+        )}
         
 {searchType === 'discord' && results && !selectedConversation && results.success && !showGraph && (
   <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
