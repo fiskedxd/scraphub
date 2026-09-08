@@ -4030,6 +4030,12 @@ if (searchType === 'discord') {
     arrowRight: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>),
     close: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>),
     info: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>),
+    user: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19a6 6 0 00-6 0m3-8a4 4 0 100-8 4 4 0 000 8zm8 8a5 5 0 00-3-4.58M18 3.42a4 4 0 010 7.16" /></svg>),
+    phone: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 4h3l2 5-2 1.5a14 14 0 005.5 5.5L15 14l5 2v3a2 2 0 01-2 2C10.82 21 3 13.18 3 6a2 2 0 012-2z" /></svg>),
+    location: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 21s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z" /><circle cx="12" cy="9" r="2.2" strokeWidth={1.8} /></svg>),
+    calendar: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2" strokeWidth={1.8} /><path strokeLinecap="round" strokeWidth={1.8} d="M7 3v3M17 3v3M3 9h18" /></svg>),
+    idCard: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" strokeWidth={1.8} /><circle cx="8" cy="11" r="2" strokeWidth={1.8} /><path strokeLinecap="round" strokeWidth={1.8} d="M13 10h5M13 14h5M6 16h4" /></svg>),
+    users: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 20a4 4 0 00-8 0m4-5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zm5-6a3 3 0 010 5m2 6a3.5 3.5 0 00-2.2-3.25" /></svg>),
     breach: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>),
     database: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" /></svg>),
     shield: (<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>),
@@ -4244,7 +4250,7 @@ if (searchType === 'discord') {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-2">
               {Icons.folder}
-              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${victimLogId.slice(0, 8)}`}</h3>
+              <h3 className="text-sm font-medium text-white/70">{victimManifest.log_name || `Log ${safeSlice(victimLogId, 8)}`}</h3>
               <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-white/50">
                 {victimManifest.unlocked ? Icons.unlock : Icons.lock}
                 {victimManifest.unlocked ? ' Déverrouillé' : ' 1 crédit'}
@@ -4785,7 +4791,7 @@ if (searchType === 'discord') {
                               <div className="text-sm text-white/80 break-all">{item.url || item.login || item.password || JSON.stringify(item)}</div>
                               {item.login && <div className="text-[11px] text-white/40 mt-1">Login: {item.login}</div>}
                               {item.password && <div className="text-[11px] text-white/40 mt-1">Mot de passe: {item.password}</div>}
-                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{logId.slice(0, 16)}...</div>}
+                              {logId && <div className="text-[10px] text-amber-300/60 font-mono mt-1">{safeSlice(logId, 16)}...</div>}
                             </div>
                             <div className="flex gap-1">
                               {logId && (
@@ -4954,37 +4960,37 @@ if (searchType === 'discord') {
                     text.includes('breach') || text.includes('oathnet') || text.includes('credential') || 
                     text.includes('pwn') || text.includes('dump') || text.includes('pass.sports') ||
                     text.includes('caf') || text.includes('allocataire')) {
-                  return { type: 'breach', label: 'ScrapHub • Breach', icon: '🔓', color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
+                    return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-red-500/20 bg-red-500/5', iconColor: 'text-red-400' };
                 }
               
                 if (source.includes('intelx') || text.includes('intelx') || 
                     text.includes('systemid') || text.includes('bucket')) {
-                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: '🧠', color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
+                  return { type: 'intelx', label: 'ScrapHub • IntelX', icon: Icons.info, color: 'border-cyan-500/20 bg-cyan-500/5', iconColor: 'text-cyan-400' };
                 }
               
                 if (source.includes('lookup2bz') || source.includes('blacksanta') || source.includes('api') ||
                     text.includes('lookup2bz') || text.includes('blacksanta') ||
                     data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'api', label: 'ScrapHub • API', icon: '⚡', color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
+                  return { type: 'api', label: 'ScrapHub • API', icon: Icons.search, color: 'border-purple-500/20 bg-purple-500/5', iconColor: 'text-purple-400' };
                 }
               
                 if (source.includes('stealer') || data.log_id || data.archive_hash || data.pwned_at) {
-                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: '📋', color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
+                  return { type: 'stealer', label: 'ScrapHub • Stealer', icon: Icons.file, color: 'border-amber-500/20 bg-amber-500/5', iconColor: 'text-amber-400' };
                 }
               
                 if (source.includes('ulp') || source.includes('local') || source.includes('sqlite') ||
                     data.nom || data.prenom || data.adresse || data.allocataire || data.ville ||
                     data.adresse_voie || data.allocataire_prenom) {
-                  return { type: 'local', label: 'ScrapHub • Local', icon: '🗄️', color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
+                  return { type: 'local', label: 'ScrapHub • Local', icon: Icons.database, color: 'border-emerald-500/20 bg-emerald-500/5', iconColor: 'text-emerald-400' };
                 }
               
-                return { type: 'other', label: 'ScrapHub • Autre', icon: '📌', color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
+                return { type: 'other', label: 'ScrapHub • Autre', icon: Icons.info, color: 'border-white/10 bg-white/5', iconColor: 'text-white/40' };
               };
             
               // Grouper les résultats
               const grouped = {};
               const allRecords = results.allRecords || [];
-
+              
               allRecords.forEach(record => {
                 const cat = getCategory(record);
                 if (!grouped[cat.type]) {
@@ -5007,14 +5013,14 @@ if (searchType === 'discord') {
                   nom: data.nom || data.last_name || data.lastName || data.surname || data.family_name || data['last name'] || '',
                   prenom: data.prenom || data.first_name || data.firstName || data.given_name || data['first name'] || '',
                   nom_complet: data.nom_complet || data.full_name || data.name || data.fullName || data['full name'] || '',
-
+                  
                   // Contact
                   email: data.email || data.courriel || data.mail || data.email_address || data['e-mail'] || '',
                   telephone: data.telephone || data.phone || data.phone_number || data.phone_national || data.tel || data.mobile || data['phone number'] || '',
-
+                  
                   // Date
                   date_naissance: data.date_naissance || data.birth_date || data.birthDate || data.dob || data.date_birth || data.birthday || data['date of birth'] || data['date_naissance'] || '',
-
+                  
                   // Adresse
                   adresse: data.adresse ? 
                     `${data.adresse.voie || data.adresse.Voie || ''} ${data.adresse.code_postal || data.adresse['Code Postal'] || ''} ${data.adresse.commune || data.adresse.Commune || ''}`.trim() :
@@ -5022,37 +5028,37 @@ if (searchType === 'discord') {
                   ville: data.ville || data.city || data.town || data.commune || data['city'] || '',
                   code_postal: data.code_postal || data.postal_code || data.zip_code || data.postcode || data['postal code'] || data['zip code'] || '',
                   pays: data.country || data.pays || data['country'] || '',
-
+                  
                   // Divers
                   age: data.age || data.years_old || data.age_years || data['age'] || '',
                   sexe: data.sexe || data.gender || data.sex || data.genre || data['gender'] || '',
-
+                  
                   // Stealer / Breach
                   log_id: data.log_id || data.id || data['log id'] || '',
                   pwned_at: data.pwned_at || data['pwned at'] || data['breach date'] || '',
                   indexed_at: data.indexed_at || data['indexed at'] || '',
                   archive_hash: data.archive_hash || data.hash || data['hash'] || '',
-
+                  
                   // Credentials
                   username: data.username || data.pseudo || data.login || data.user || data.screen_name || data['login'] || '',
                   password: data.password || data.pwd || data.pass || data.passphrase || data.secret || data['password'] || '',
                   url: data.url || data.website || data.domain || data.source_url || data['url'] || '',
-
+                  
                   // Source
                   source: record.source || 'unknown',
                   source_label: data.source || data.provider || record.source || '',
-
+                  
                   // Allocataire (CAF)
                   allocataire: data.allocataire || data['allocataire'] || null,
-
+                  
                   // Enfants
                   enfants: Array.isArray(data.enfants) ? data.enfants : 
                            Array.isArray(data.children) ? data.children : 
                            Array.isArray(data['enfants']) ? data['enfants'] : [],
-
+                  
                   // Base
                   dbname: data.dbname || data.database_name || data.source_db || data['dbname'] || '',
-
+                  
                   // Champs CAF spécifiques
                   id_psp: data.id_psp || data['id psp'] || data['Id Psp'] || '',
                   organisme: data.organisme || data['organisme'] || '',
@@ -5084,84 +5090,89 @@ if (searchType === 'discord') {
               
                 // Construction du sous-titre - comme dans l'exemple
                 const parts = [];
-
+                
                 // Identité
                 if (fields.prenom && fields.nom) {
-                  parts.push(`👤 ${fields.prenom} ${fields.nom}`);
+                  parts.push({ icon: Icons.user, text: `${fields.prenom} ${fields.nom}` });
                 } else if (fields.nom) {
-                  parts.push(`👤 ${fields.nom}`);
+                  parts.push({ icon: Icons.user, text: fields.nom });
                 } else if (fields.prenom) {
-                  parts.push(`👤 ${fields.prenom}`);
+                  parts.push({ icon: Icons.user, text: fields.prenom });
                 }
-
+                
                 // Email
-                if (fields.email) parts.push(`📧 ${fields.email}`);
-
+                if (fields.email) parts.push({ icon: Icons.email, text: fields.email });
+                
                 // Téléphone
-                if (fields.telephone) parts.push(`📱 ${fields.telephone}`);
-
+                if (fields.telephone) parts.push({ icon: Icons.phone, text: fields.telephone });
+                
                 // Ville
-                if (fields.ville) parts.push(`📍 ${fields.ville}`);
-
+                if (fields.ville) parts.push({ icon: Icons.location, text: fields.ville });
+                
                 // Âge ou Date
-                if (fields.age) parts.push(`🎂 ${fields.age} ans`);
+                if (fields.age) parts.push({ icon: Icons.info, text: `${fields.age} ans` });
                 if (fields.date_naissance) {
                   try {
                     const d = new Date(fields.date_naissance);
-                    if (!isNaN(d)) parts.push(`📅 ${d.toLocaleDateString('fr-FR')}`);
+                    if (!isNaN(d)) parts.push({ icon: Icons.calendar, text: d.toLocaleDateString('fr-FR') });
                   } catch(e) {}
                 }
-
+                
                 // Username
-                if (fields.username && !fields.email) parts.push(`👤 ${fields.username}`);
-
+                if (fields.username && !fields.email) parts.push({ icon: Icons.user, text: fields.username });
+                
                 // Log ID
-                if (fields.log_id && fields.log_id.length > 8) {
-                  parts.push(`🆔 ${fields.log_id.slice(0, 12)}...`);
+                if (fields.log_id && String(fields.log_id).length > 8) {
+                  parts.push({ icon: Icons.idCard, text: `${safeSlice(fields.log_id, 12)}...` });
                 }
-
+                
                 // ID PSP
-                if (fields.id_psp) parts.push(`🪪 ${fields.id_psp}`);
-
+                if (fields.id_psp) parts.push({ icon: Icons.idCard, text: fields.id_psp });
+                
                 // Date compromise
                 if (fields.pwned_at) {
                   try {
                     const d = new Date(fields.pwned_at);
-                    if (!isNaN(d)) parts.push(`⚠️ ${d.toLocaleDateString('fr-FR')}`);
+                    if (!isNaN(d)) parts.push({ icon: Icons.alert, text: d.toLocaleDateString('fr-FR') });
                   } catch(e) {}
                 }
-
+                
                 // Allocataire (parent)
                 if (fields.allocataire_prenom && fields.allocataire_nom) {
-                  parts.push(`👨‍👩‍👦 ${fields.allocataire_prenom} ${fields.allocataire_nom}`);
+                  parts.push({ icon: Icons.users, text: `${fields.allocataire_prenom} ${fields.allocataire_nom}` });
                 } else if (fields.allocataire) {
                   const alloc = fields.allocataire;
                   const allocName = `${alloc.prenom || alloc.Prenom || ''} ${alloc.nom || alloc.Nom || ''}`.trim();
-                  if (allocName) parts.push(`👨‍👩‍👦 ${allocName}`);
+                  if (allocName) parts.push({ icon: Icons.users, text: allocName });
                 }
               
                 // Enfants
                 if (fields.enfants.length > 0) {
                   const enfantsNames = fields.enfants.map(e => `${e.prenom || e.Prenom || ''} ${e.nom || e.Nom || ''}`.trim()).filter(Boolean);
                   if (enfantsNames.length > 0) {
-                    parts.push(`👶 ${enfantsNames.slice(0, 3).join(', ')}${enfantsNames.length > 3 ? ` +${enfantsNames.length - 3}` : ''}`);
+                    parts.push({ icon: Icons.user, text: `${enfantsNames.slice(0, 3).join(', ')}${enfantsNames.length > 3 ? ` +${enfantsNames.length - 3}` : ''}` });
                   }
                 }
-
+                
                 if (fields.child_firstname) {
-                  parts.push(`👶 ${fields.child_firstname} ${fields.child_lastname || ''}`.trim());
+                  parts.push({ icon: Icons.user, text: `${fields.child_firstname} ${fields.child_lastname || ''}`.trim() });
                 }
               
                 // Base
-                if (fields.dbname) parts.push(`📁 ${fields.dbname}`);
-                if (fields.organisme) parts.push(`🏛️ ${fields.organisme}`);
-                if (fields.situation) parts.push(`📋 ${fields.situation}`);
+                if (fields.dbname) parts.push({ icon: Icons.folder, text: fields.dbname });
+                if (fields.organisme) parts.push({ icon: Icons.database, text: fields.organisme });
+                if (fields.situation) parts.push({ icon: Icons.file, text: fields.situation });
               
-                const subtitle = parts.join(' • ');
+                const subtitle = parts.map((part, partIndex) => (
+                  <React.Fragment key={`${part.text}-${partIndex}`}>
+                    <span className="inline-flex items-center gap-1 align-middle">{part.icon}{part.text}</span>
+                    {partIndex < parts.length - 1 ? ' • ' : null}
+                  </React.Fragment>
+                ));
               
                 // Tags d'informations supplémentaires
                 const extra = [];
-
+                
                 // Pour Local / CAF / ULP
                 if (cat.type === 'local') {
                   if (fields.nom) extra.push({ label: 'Nom', value: fields.nom });
@@ -5176,7 +5187,7 @@ if (searchType === 'discord') {
                   if (fields.ville) extra.push({ label: 'Ville', value: fields.ville });
                   if (fields.code_postal) extra.push({ label: 'CP', value: fields.code_postal });
                   if (fields.pays) extra.push({ label: 'Pays', value: fields.pays });
-                  if (fields.sexe) extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? '♀' : fields.sexe === 'M' ? '♂' : fields.sexe });
+                  if (fields.sexe) extra.push({ label: 'Sexe', value: fields.sexe === 'F' ? 'F' : fields.sexe === 'M' ? 'M' : fields.sexe });
                   if (fields.age) extra.push({ label: 'Âge', value: fields.age });
                   if (fields.id_psp) extra.push({ label: 'ID PSP', value: fields.id_psp });
                   if (fields.organisme) extra.push({ label: 'Organisme', value: fields.organisme });
@@ -5187,11 +5198,11 @@ if (searchType === 'discord') {
                   if (fields.allocataire_qualite) extra.push({ label: 'Qualité', value: fields.allocataire_qualite });
                   if (fields.allocataire_matricule) extra.push({ label: 'Matricule', value: fields.allocataire_matricule });
                 }
-
+                
                 // Pour Breach / Stealer / API
                 if (['breach', 'intelx', 'api', 'stealer'].includes(cat.type)) {
-                  if (fields.log_id) extra.push({ label: 'Log ID', value: fields.log_id.slice(0, 16) + '...' });
-                  if (fields.archive_hash) extra.push({ label: 'Hash', value: fields.archive_hash.slice(0, 16) + '...' });
+                  if (fields.log_id) extra.push({ label: 'Log ID', value: safeSlice(fields.log_id, 16) + '...' });
+                  if (fields.archive_hash) extra.push({ label: 'Hash', value: safeSlice(fields.archive_hash, 16) + '...' });
                   if (fields.username) extra.push({ label: 'Login', value: fields.username });
                   if (fields.password) extra.push({ label: 'MDP', value: fields.password.length > 20 ? fields.password.slice(0, 20) + '...' : fields.password });
                   if (fields.email && !extra.some(e => e.label === 'Email')) extra.push({ label: 'Email', value: fields.email });
@@ -5265,43 +5276,6 @@ if (searchType === 'discord') {
             })()}
           </div>
         )}
-        
-{searchType === 'discord' && results && !selectedConversation && results.success && !showGraph && (
-  <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
-    <div className="p-5 border-b border-white/[0.06] bg-black">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div><h2 className="text-lg font-semibold">Résultats Discord</h2><p className="text-white/40 text-xs">{results.searchTerm && `"${results.searchTerm}"`}</p></div>
-        <div className="flex gap-5"><div><span className="text-2xl font-bold">{results.stats?.totalConversations || 0}</span><span className="text-white/40 text-xs ml-1">conv.</span></div><div><span className="text-2xl font-bold">{results.stats?.totalMessages || 0}</span><span className="text-white/40 text-xs ml-1">msg</span></div></div>
-      </div>
-    </div>
-    <div className="p-5 space-y-2">
-      {results.conversations?.map((conv, idx) => (
-        <div 
-          key={idx} 
-          onClick={async () => {
-            // Utiliser conv.id ou conv.name selon ce qui est disponible
-            const searchId = conv.id || conv.name;
-            const messages = await loadFullDiscordConversation(searchId);
-            setSelectedConversation({ id: conv.id, name: conv.name });
-            setSelectedConversationData(messages);
-          }} 
-          className="p-4 rounded-xl border border-white/[0.06] bg-black hover:bg-white/[0.05] cursor-pointer group"
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <span className="font-mono text-sm font-medium text-white/80">{conv.name}</span>
-              <div className="flex gap-4 text-xs text-white/30 mt-1">
-                <span>{conv.totalMessages} messages</span>
-                <span>{conv.participants} participants</span>
-              </div>
-            </div>
-            {Icons.arrowRight}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
         
         {showGraph && relationshipGraph && (
           <RelationshipGraphVisualization 
