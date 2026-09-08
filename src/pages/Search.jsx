@@ -334,8 +334,42 @@ const normalizeLookup2bzItems = (data) => {
   return [];
 };
 
+const getScraphubResultCategory = (item = {}) => {
+  const haystack = JSON.stringify(item).toLowerCase();
+
+  if (/breach|leak|dump|credential|pwn|victim|password|security/i.test(haystack)) {
+    return { category: 'breach', label: 'ScrapHub • Breach' };
+  }
+
+  if (/ip|asn|geo|isp|vpn|tor|network|country/i.test(haystack)) {
+    return { category: 'ip', label: 'ScrapHub • IP Intelligence' };
+  }
+
+  if (/roblox|minecraft|fivem|steam|discord|platform|game|gaming/i.test(haystack)) {
+    return { category: 'platform', label: 'ScrapHub • Platform' };
+  }
+
+  if (/intelx|oathnet|identity|profile|osint|intelligence|analysis/i.test(haystack)) {
+    return { category: 'intelligence', label: 'ScrapHub • Intelligence' };
+  }
+
+  return { category: 'intelligence', label: 'ScrapHub • Intelligence' };
+};
+
+const normalizeScraphubRecords = (records = []) =>
+  records.map((item) => {
+    const cleaned = cleanMaskedValues(item);
+    const { category, label } = getScraphubResultCategory(cleaned);
+    return {
+      ...cleaned,
+      category,
+      source: label,
+      provider: 'ScrapHub'
+    };
+  });
+
 const buildLookup2bzResult = (query, data) => {
-  const records = normalizeLookup2bzItems(data).map((item) => cleanMaskedValues(item));
+  const records = normalizeScraphubRecords(normalizeLookup2bzItems(data));
   const stealerLike = records.filter((item) => item?.log_id || item?.archive_hash || item?.pwned_at);
   const ulpLike = records.filter((item) => !stealerLike.includes(item));
 
@@ -364,7 +398,7 @@ const searchLookup2bzAll = async (query) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Erreur de recherche Lookup2bz');
+    throw new Error(data?.error || 'Erreur de recherche ScrapHub');
   }
 
   return buildLookup2bzResult(trimmed, data);
