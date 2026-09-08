@@ -1592,7 +1592,10 @@ const SearchPage = () => {
   const [intelxBuckets, setIntelxBuckets] = useState([]);
   const [victimManifest, setVictimManifest] = useState(null);
   const [victimLogId, setVictimLogId] = useState(null);
+  const [victimManifestLoading, setVictimManifestLoading] = useState(false);
+  const [victimManifestError, setVictimManifestError] = useState('');
   const [logDetailItem, setLogDetailItem] = useState(null);
+  const victimPanelRef = useRef(null);
   const [selectedVictimFile, setSelectedVictimFile] = useState(null);
   const [victimFileSearch, setVictimFileSearch] = useState('');
   
@@ -2358,14 +2361,26 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
   };
 
   const handleVictimManifest = async (logId) => {
+    if (!logId) return;
+    setVictimLogId(logId);
+    setVictimManifest(null);
+    setVictimManifestError('');
+    setVictimManifestLoading(true);
     try {
-      setVictimLogId(logId);
       const manifest = await getVictimManifest(logId);
       setVictimManifest(manifest);
     } catch (e) {
       console.error('Erreur récupération manifeste:', e);
+      setVictimManifestError(e.message || 'Impossible de charger le victim log.');
+    } finally {
+      setVictimManifestLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!victimLogId || !victimPanelRef.current) return;
+    victimPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [victimLogId]);
 
   const handleVictimFileDownload = async (logId, fileId) => {
     try {
@@ -4182,7 +4197,37 @@ if (searchType === 'discord') {
   };
 
   const VictimManifestPanel = () => {
-    if (!victimManifest || !victimLogId) return null;
+    if (!victimLogId) return null;
+
+    if (victimManifestLoading || victimManifestError || !victimManifest) {
+      return (
+        <div ref={victimPanelRef} className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-black p-5 shadow-2xl shadow-black/50">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Open victim</h3>
+              <p className="mt-1 break-all font-mono text-[11px] text-white/35">Log {victimLogId}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setVictimManifest(null);
+                setVictimLogId(null);
+                setVictimManifestError('');
+              }}
+              className="rounded-lg px-2 py-1 text-xs text-white/45 transition hover:bg-white/10 hover:text-white"
+            >
+              Fermer
+            </button>
+          </div>
+          {victimManifestLoading && <p className="mt-5 text-sm text-white/55">Chargement du victim log...</p>}
+          {victimManifestError && (
+            <div className="mt-5 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">
+              {victimManifestError}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     const filterFiles = (tree, searchTerm, pathPrefix = '') => {
       if (!searchTerm) return tree;
@@ -4261,7 +4306,7 @@ if (searchType === 'discord') {
     const filteredTree = filterFiles(victimManifest.victim_tree, victimFileSearch);
 
     return (
-      <div className="mb-6 bg-black rounded-2xl border border-white/10 overflow-hidden">
+      <div ref={victimPanelRef} className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl shadow-black/50">
         <div className="p-4 border-b border-white/10 bg-black">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-2">
