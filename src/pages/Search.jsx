@@ -4998,6 +4998,10 @@ if (searchType === 'discord') {
                 const source = String(record.source || '').toLowerCase();
                 const data = record.parsedData || record;
                 const text = JSON.stringify(data).toLowerCase();
+
+                if (String(data.service_id || '').toLowerCase() === 'oathnet') {
+                  return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/70' };
+                }
               
                 // Détection des types de données
                 if (data.log_id || data.archive_hash || data.pwned_at) {
@@ -5400,7 +5404,8 @@ if (searchType === 'discord') {
 
               return (
                 <>
-                  {renderGroups('Résultats API', ['breach', 'intelx', 'api', 'stealer'], Icons.shield)}
+                  {renderGroups('Résultats API', ['intelx', 'api', 'stealer'], Icons.shield)}
+                  {renderGroups('Résultats Breach', ['breach'], Icons.breach)}
                   {renderGroups('Résultats locaux', ['local', 'other'], Icons.database)}
                 </>
               );
