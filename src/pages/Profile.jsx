@@ -13,12 +13,12 @@ const gradientPresets = {
 };
 
 const badgeOptions = [
-  { id: 'bugHunter', label: 'BUG Hunter', image: '/uploads/badges/badge-1783861934790.png', requirement: 'Bug approuve par ScrapHub' },
-  { id: 'qlf', label: 'QLF', image: '/uploads/badges/badge-1774998593652.png', requirement: 'Badge communautaire' },
-  { id: 'eternal', label: 'Eternel', image: '/uploads/loot/badges/badge-loot_eternal-1776057380716.png', requirement: 'Badge communautaire' },
-  { id: 'premium', label: 'Premium', image: '/uploads/badges/badge-1788970806717.png', requirement: 'Plan payant' },
-  { id: 'verified', label: 'Verified', image: '/uploads/badges/badge-1788970827783.png', requirement: 'Email verifie' },
-  { id: 'leet', label: '1337', image: '/uploads/badges/badge-1775690073461.png', requirement: 'Membre du serveur Discord' }
+  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://deads.rip/uploads/badges/badge-1783861934790.png', requirement: 'Bug approuve par ScrapHub' },
+  { id: 'qlf', label: 'QLF', image: 'https://deads.rip/uploads/badges/badge-1774998593652.png', requirement: 'Badge communautaire' },
+  { id: 'eternal', label: 'Eternel', image: 'https://deads.rip/uploads/loot/badges/badge-loot_eternal-1776057380716.png', requirement: 'Badge communautaire' },
+  { id: 'premium', label: 'Premium', image: 'https://deads.rip/uploads/badges/badge-1788970806717.png', requirement: 'Plan payant' },
+  { id: 'verified', label: 'Verified', image: 'https://deads.rip/uploads/badges/badge-1788970827783.png', requirement: 'Email verifie' },
+  { id: 'leet', label: '1337', image: 'https://deads.rip/uploads/badges/badge-1775690073461.png', requirement: 'Membre du serveur Discord' }
 ];
 
 const ProfilePage = () => {

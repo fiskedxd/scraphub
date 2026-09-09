@@ -50,12 +50,12 @@ const PublicProfilePage = () => {
   const hasEmailFlag = showEmail && profile?.email;
   const isPaidPlan = profile?.accountType && profile.accountType !== 'free';
   const badgeCatalog = {
-    bugHunter: { label: 'BUG Hunter', image: '/uploads/badges/badge-1783861934790.png', glow: '#e63946' },
-    qlf: { label: 'QLF', image: '/uploads/badges/badge-1774998593652.png', glow: '#e63946' },
-    eternal: { label: 'Éternel', image: '/uploads/loot/badges/badge-loot_eternal-1776057380716.png', glow: '#ffffff' },
-    premium: { label: 'Premium', image: '/uploads/badges/badge-1788970806717.png', glow: '#f50aed' },
-    verified: { label: 'Verified', image: '/uploads/badges/badge-1788970827783.png', glow: '#10b981' },
-    leet: { label: '1337', image: '/uploads/badges/badge-1775690073461.png', glow: '#e63946' }
+    bugHunter: { label: 'BUG Hunter', image: 'https://deads.rip/uploads/badges/badge-1783861934790.png', glow: '#e63946' },
+    qlf: { label: 'QLF', image: 'https://deads.rip/uploads/badges/badge-1774998593652.png', glow: '#e63946' },
+    eternal: { label: 'Éternel', image: 'https://deads.rip/uploads/loot/badges/badge-loot_eternal-1776057380716.png', glow: '#ffffff' },
+    premium: { label: 'Premium', image: 'https://deads.rip/uploads/badges/badge-1788970806717.png', glow: '#f50aed' },
+    verified: { label: 'Verified', image: 'https://deads.rip/uploads/badges/badge-1788970827783.png', glow: '#10b981' },
+    leet: { label: '1337', image: 'https://deads.rip/uploads/badges/badge-1775690073461.png', glow: '#e63946' }
   };
   const storedBadges = Array.isArray(publicProfile.badges) ? publicProfile.badges : [];
   const publicBadges = storedBadges.length
