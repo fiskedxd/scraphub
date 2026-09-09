@@ -50,12 +50,12 @@ const PublicProfilePage = () => {
   const hasEmailFlag = showEmail && profile?.email;
   const isPaidPlan = profile?.accountType && profile.accountType !== 'free';
   const badgeCatalog = {
-    bugHunter: { label: 'BUG Hunter', image: 'https://deads.rip/uploads/badges/badge-1783861934790.png', glow: '#e63946' },
-    qlf: { label: 'QLF', image: 'https://deads.rip/uploads/badges/badge-1774998593652.png', glow: '#e63946' },
-    eternal: { label: 'Éternel', image: 'https://deads.rip/uploads/loot/badges/badge-loot_eternal-1776057380716.png', glow: '#ffffff' },
-    premium: { label: 'Premium', image: 'https://deads.rip/uploads/badges/badge-1788970806717.png', glow: '#f50aed' },
-    verified: { label: 'Verified', image: 'https://deads.rip/uploads/badges/badge-1788970827783.png', glow: '#10b981' },
-    leet: { label: '1337', image: 'https://deads.rip/uploads/badges/badge-1775690073461.png', glow: '#e63946' }
+    bugHunter: { label: 'BUG Hunter', image: '/uploads/badges/bughunter.png', glow: '#e63946' },
+    qlf: { label: 'QLF', image: '/uploads/badges/qlf.png', glow: '#e63946' },
+    eternal: { label: 'Éternel', image: '/uploads/badges/eternal.png', glow: '#ffffff' },
+    premium: { label: 'Premium', image: '/uploads/badges/prenium.png', glow: '#f50aed' },
+    verified: { label: 'Verified', image: '/uploads/badges/verified.png', glow: '#10b981' },
+    leet: { label: '1337', image: '/uploads/badges/1337.png', glow: '#e63946' }
   };
   const storedBadges = Array.isArray(publicProfile.badges) ? publicProfile.badges : [];
   const publicBadges = storedBadges.length
@@ -352,9 +352,7 @@ const PublicProfilePage = () => {
 
   return (
     <div
-      className={`relative min-h-screen w-full overflow-x-hidden ${
-        isWhite ? 'bg-white' : isLight ? 'bg-gray-50' : 'bg-black'
-      }`}
+      className="profile-page relative min-h-screen w-full overflow-x-hidden bg-transparent"
       onClick={handleEnterProfile} // ← CLIC N'IMPORTE OÙ SUR LA PAGE
     >
       {/* Écran "Appuyez pour entrer" avec fond noir */}
@@ -402,7 +400,7 @@ const PublicProfilePage = () => {
             />
           )}
 
-          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
       )}
 
@@ -417,8 +415,6 @@ const PublicProfilePage = () => {
           }`}
         />
       )}
-
-      <div className="fixed inset-0 z-0 pointer-events-none bg-black/10" />
 
       <div className="relative z-10 min-h-screen w-full">
         <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
@@ -454,13 +450,7 @@ const PublicProfilePage = () => {
             ref={cardRef}
             onMouseMove={handleCardMove}
             onMouseLeave={resetCardTilt}
-            className={`overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-2xl ${
-              isWhite
-                ? 'border-black/10 bg-white/75'
-                : isLight
-                  ? 'border-gray-200/80 bg-white/80'
-                  : 'border-white/[0.10] bg-black/45'
-            }`}
+            className="profile-card-transparent relative overflow-visible"
           >
             <div className="profile-card-shine" />
             {publicProfile.bannerUrl && (
@@ -486,11 +476,7 @@ const PublicProfilePage = () => {
                   <div className="flex flex-wrap items-center gap-3">
                     <h1
                     className={`text-3xl font-bold tracking-tight ${
-                      isWhite
-                        ? 'text-black'
-                        : isLight
-                          ? 'text-gray-900'
-                          : 'text-white'
+                      'text-white'
                     }`}
                     >{previewName}</h1>
                     {publicBadges.length > 0 && (
@@ -507,11 +493,7 @@ const PublicProfilePage = () => {
 
                   <p
                     className={`text-sm ${
-                      isWhite
-                        ? 'text-black/50'
-                        : isLight
-                          ? 'text-gray-500'
-                          : 'text-white/50'
+                      'text-white/55'
                     }`}
                   >
                     @{previewHandle}
