@@ -22,6 +22,7 @@ import GeoPage from './pages/GeoPage';
 import AdminPage from './pages/AdminPage';
 import PlansPage from './pages/Plans';
 import ApiDocsPage from './pages/ApiDocs';
+import BugReportPage from './pages/BugReport';
 
 function App() {
   return (
@@ -122,6 +123,7 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/bug-report" element={<BugReportPage />} />
         <Route path="/u/:username" element={<PublicProfilePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<SettingsPage />} />

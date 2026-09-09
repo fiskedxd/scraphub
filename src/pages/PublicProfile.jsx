@@ -21,6 +21,7 @@ const PublicProfilePage = () => {
   const [spotifyData, setSpotifyData] = useState(null);
   const [hasEnteredProfile, setHasEnteredProfile] = useState(false);
   const videoRef = useRef(null);
+  const cardRef = useRef(null);
 
   const publicProfile = profile?.publicProfile || {};
   const previewName = publicProfile.displayName || profile?.name || profile?.email;
@@ -47,6 +48,38 @@ const PublicProfilePage = () => {
   const hasLocationFlag =
     showLocation && publicProfile.location && publicProfile.location.trim() !== '';
   const hasEmailFlag = showEmail && profile?.email;
+  const isPaidPlan = profile?.accountType && profile.accountType !== 'free';
+  const badgeCatalog = {
+    bugHunter: { label: 'BUG Hunter', image: '/uploads/badges/badge-1783861934790.png', glow: '#e63946' },
+    qlf: { label: 'QLF', image: '/uploads/badges/badge-1774998593652.png', glow: '#e63946' },
+    eternal: { label: 'Éternel', image: '/uploads/loot/badges/badge-loot_eternal-1776057380716.png', glow: '#ffffff' },
+    premium: { label: 'Premium', image: '/uploads/badges/badge-1788970806717.png', glow: '#f50aed' },
+    verified: { label: 'Verified', image: '/uploads/badges/badge-1788970827783.png', glow: '#10b981' },
+    leet: { label: '1337', image: '/uploads/badges/badge-1775690073461.png', glow: '#e63946' }
+  };
+  const storedBadges = Array.isArray(publicProfile.badges) ? publicProfile.badges : [];
+  const publicBadges = storedBadges.length
+    ? storedBadges.map((badge) => ({ ...badge, ...badgeCatalog[badge.id] }))
+    : [
+        ...(publicProfile.verifiedBadge || profile?.emailVerified ? [{ ...badgeCatalog.verified, id: 'verified' }] : []),
+        ...(isPaidPlan ? [{ ...badgeCatalog.premium, id: 'premium' }] : []),
+        ...(publicProfile.bugHunter ? [{ ...badgeCatalog.bugHunter, id: 'bugHunter' }] : [])
+      ];
+
+  const handleCardMove = (event) => {
+    if (!cardRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
+    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -8;
+    cardRef.current.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
+    cardRef.current.style.setProperty('--shine-x', `${((event.clientX - rect.left) / rect.width) * 100}%`);
+    cardRef.current.style.setProperty('--shine-y', `${((event.clientY - rect.top) / rect.height) * 100}%`);
+  };
+
+  const resetCardTilt = () => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -388,7 +421,7 @@ const PublicProfilePage = () => {
       <div className="fixed inset-0 z-0 pointer-events-none bg-black/10" />
 
       <div className="relative z-10 min-h-screen w-full">
-        <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
+        <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
           <div className="mb-8">
             <Link
               to="/"
@@ -418,6 +451,9 @@ const PublicProfilePage = () => {
           </div>
 
           <div
+            ref={cardRef}
+            onMouseMove={handleCardMove}
+            onMouseLeave={resetCardTilt}
             className={`overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-2xl ${
               isWhite
                 ? 'border-black/10 bg-white/75'
@@ -426,22 +462,29 @@ const PublicProfilePage = () => {
                   : 'border-white/[0.10] bg-black/45'
             }`}
           >
+            <div className="profile-card-shine" />
+            {publicProfile.bannerUrl && (
+              <div className="h-32 w-full overflow-hidden sm:h-44">
+                <img src={publicProfile.bannerUrl} alt="" className="h-full w-full object-cover" />
+              </div>
+            )}
             <div className="relative p-6 sm:p-8 lg:p-10">
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
                 <img
                   src={publicProfile.avatar || '/pdp.png'}
                   alt={previewName}
-                  className="h-24 w-24 shrink-0 rounded-full object-cover shadow-xl"
+                  className="profile-avatar h-24 w-24 shrink-0 rounded-full object-cover shadow-xl"
                 />
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   {profile.accountType && (
                     <div className="mb-2 inline-flex rounded-full bg-white/10 px-2 py-0.5 text-xs backdrop-blur">
                       {profile.accountType}
                     </div>
                   )}
 
-                  <h1
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1
                     className={`text-3xl font-bold tracking-tight ${
                       isWhite
                         ? 'text-black'
@@ -449,9 +492,18 @@ const PublicProfilePage = () => {
                           ? 'text-gray-900'
                           : 'text-white'
                     }`}
-                  >
-                    {previewName}
-                  </h1>
+                    >{previewName}</h1>
+                    {publicBadges.length > 0 && (
+                      <div className="profile-badges" aria-label="Badges">
+                        {publicBadges.map((badge) => badge.image && (
+                          <span key={badge.id} className="profile-badge" style={{ '--badge-glow': badge.glow || '#fff' }}>
+                            <img src={badge.image} alt={badge.label} />
+                            <span>{badge.label}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   <p
                     className={`text-sm ${

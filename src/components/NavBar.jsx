@@ -69,6 +69,7 @@ const NavBar = () => {
     { to: "/search", label: "Search" },
     { to: "/chat", label: "Chat" },
     { to: "/profile", label: "Profil" },
+    { to: "/bug-report", label: "Signaler un bug" },
     { to: "/settings", label: "Paramètres" },
     { to: "/plans", label: "Plans & tarifs" },
     { to: "/docs", label: "API Docs" }

@@ -12,6 +12,15 @@ const gradientPresets = {
   pink: 'linear-gradient(135deg, #ec4899, #be185d)'
 };
 
+const badgeOptions = [
+  { id: 'bugHunter', label: 'BUG Hunter', image: '/uploads/badges/badge-1783861934790.png', requirement: 'Bug approuve par ScrapHub' },
+  { id: 'qlf', label: 'QLF', image: '/uploads/badges/badge-1774998593652.png', requirement: 'Badge communautaire' },
+  { id: 'eternal', label: 'Eternel', image: '/uploads/loot/badges/badge-loot_eternal-1776057380716.png', requirement: 'Badge communautaire' },
+  { id: 'premium', label: 'Premium', image: '/uploads/badges/badge-1788970806717.png', requirement: 'Plan payant' },
+  { id: 'verified', label: 'Verified', image: '/uploads/badges/badge-1788970827783.png', requirement: 'Email verifie' },
+  { id: 'leet', label: '1337', image: '/uploads/badges/badge-1775690073461.png', requirement: 'Membre du serveur Discord' }
+];
+
 const ProfilePage = () => {
   const { user, updateProfile } = useAuth();
   const { isWhite, isLight, isDark } = useTheme();
@@ -31,7 +40,8 @@ const ProfilePage = () => {
     profileTheme: 'dark',
     profileVisibility: 'public',
     showEmail: false,
-    showLocation: true
+    showLocation: true,
+    badges: []
   });
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
@@ -80,7 +90,8 @@ const ProfilePage = () => {
       profileTheme: user.publicProfile?.profileTheme || 'dark',
       profileVisibility: user.privacy?.profileVisibility || 'public',
       showEmail: user.publicProfile?.showEmail ?? user.privacy?.showEmail ?? false,
-      showLocation: user.publicProfile?.showLocation ?? user.privacy?.showLocation ?? true
+      showLocation: user.publicProfile?.showLocation ?? user.privacy?.showLocation ?? true,
+      badges: Array.isArray(user.publicProfile?.badges) ? user.publicProfile.badges.map((badge) => badge.id) : []
     }));
 
     
@@ -116,6 +127,14 @@ const ProfilePage = () => {
   const previewUsername = useMemo(() => {
     return (form.username || form.displayName || user?.name || 'profil').replace(/\s+/g, '-').toLowerCase();
   }, [form.username, form.displayName, user]);
+
+  const isBadgeAvailable = (badgeId) => {
+    if (badgeId === 'premium') return user?.accountType && user.accountType !== 'free';
+    if (badgeId === 'verified') return user?.emailVerified || user?.security?.emailVerified;
+    if (badgeId === 'leet') return user?.discord?.guildMember || user?.discord?.isMember;
+    if (badgeId === 'bugHunter') return user?.publicProfile?.bugReports?.some((report) => report.status === 'approved');
+    return true;
+  };
 
   const Icons = {
     user: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />,
@@ -247,7 +266,8 @@ const ProfilePage = () => {
         profileAnimation: form.profileAnimation,
         profileTheme: form.profileTheme,
         showEmail: form.showEmail,
-        showLocation: form.showLocation
+        showLocation: form.showLocation,
+        badges: form.badges
       },
       privacy: {
         profileVisibility: form.profileVisibility,
@@ -647,6 +667,38 @@ const ProfilePage = () => {
                     </select>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
+              isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
+            }`}>
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">Badges du profil</h2>
+              <p className={`mb-5 text-sm ${isWhite ? 'text-black/50' : isLight ? 'text-gray-500' : 'text-white/50'}`}>
+                Selectionne les badges que tu veux afficher sur ta page publique.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {badgeOptions.map((badge) => {
+                  const selected = form.badges.includes(badge.id);
+                  const available = isBadgeAvailable(badge.id);
+                  return (
+                    <button
+                      type="button"
+                      key={badge.id}
+                      disabled={!available}
+                      onClick={() => handleChange('badges', selected ? form.badges.filter((id) => id !== badge.id) : [...form.badges, badge.id])}
+                      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${selected ? 'border-red-400/70 bg-red-500/10' : isWhite ? 'border-black/10 bg-black/5 hover:bg-black/10' : 'border-white/[0.08] bg-white/5 hover:bg-white/10'} ${!available ? 'cursor-not-allowed opacity-40' : ''}`}
+                    >
+                      <img src={badge.image} alt="" className="h-10 w-10 object-contain" />
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-sm font-medium ${isWhite || isLight ? 'text-gray-900' : 'text-white'}`}>{badge.label}</span>
+                        <span className={`block text-xs ${isWhite || isLight ? 'text-gray-500' : 'text-white/45'}`}>{badge.requirement}</span>
+                      </span>
+                      <input type="checkbox" checked={selected} onChange={() => {}} aria-label={`Afficher ${badge.label}`} className="h-4 w-4" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
