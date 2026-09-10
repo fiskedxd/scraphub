@@ -13,12 +13,12 @@ const gradientPresets = {
 };
 
 const badgeOptions = [
-  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', requirement: 'Bug approuve par ScrapHub' },
+  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', requirement: 'Disponible pour tous' },
   { id: 'qlf', label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
   { id: 'eternal', label: 'Eternel', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/eternal.png', requirement: 'Badge communautaire' },
   { id: 'premium', label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png', requirement: 'Plan payant' },
   { id: 'verified', label: 'Verified', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png', requirement: 'Email verifie' },
-  { id: 'leet', label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', requirement: 'Membre du serveur Discord' }
+  { id: 'leet', label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', requirement: 'Disponible pour tous' }
 ];
 
 const ProfilePage = () => {
@@ -49,7 +49,6 @@ const ProfilePage = () => {
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [spotifyUser, setSpotifyUser] = useState(null);
   const [showSpotify, setShowSpotify] = useState(true);
-  const [discordId, setDiscordId] = useState('');
   const [badgeCode, setBadgeCode] = useState('');
   const [badgeActionStatus, setBadgeActionStatus] = useState('');
 
@@ -134,8 +133,7 @@ const ProfilePage = () => {
   const isBadgeAvailable = (badgeId) => {
     if (badgeId === 'premium') return user?.accountType && user.accountType !== 'free';
     if (badgeId === 'verified') return user?.publicProfile?.verifiedBadge;
-    if (badgeId === 'leet') return user?.publicProfile?.discordBadgeVerified;
-    if (badgeId === 'bugHunter') return user?.publicProfile?.bugReports?.some((report) => report.status === 'approved');
+    if (badgeId === 'leet' || badgeId === 'bugHunter') return true;
     return true;
   };
 
@@ -170,16 +168,6 @@ const ProfilePage = () => {
     return data;
   };
 
-  const verifyDiscordBadge = async () => {
-    try {
-      await badgeRequest('discord-badge', { discordId });
-      setBadgeActionStatus('Discord vérifié. Enregistre ensuite les badges affichés.');
-      window.location.reload();
-    } catch (error) {
-      setBadgeActionStatus(error.message);
-    }
-  };
-
   const requestVerifiedBadge = async () => {
     try {
       await badgeRequest('verified-badge/request', {});
@@ -191,8 +179,8 @@ const ProfilePage = () => {
   const confirmVerifiedBadge = async () => {
     try {
       await badgeRequest('verified-badge/confirm', { code: badgeCode });
-      setBadgeActionStatus('Email vérifié. Enregistre ensuite les badges affichés.');
-      window.location.reload();
+      setBadgeActionStatus('Email vérifié. Le badge est disponible.');
+      handleChange('badges', [...new Set([...form.badges, 'verified'])]);
     } catch (error) {
       setBadgeActionStatus(error.message);
     }
@@ -725,14 +713,7 @@ const ProfilePage = () => {
               <p className={`mb-5 text-sm ${isWhite ? 'text-black/50' : isLight ? 'text-gray-500' : 'text-white/50'}`}>
                 Selectionne les badges que tu veux afficher sur ta page publique.
               </p>
-              <div className="mb-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-white/[0.08] bg-white/5 p-3">
-                  <p className="mb-2 text-xs text-white/60">Badge 1337 : verifie ton ID Discord</p>
-                  <div className="flex gap-2">
-                    <input value={discordId} onChange={(e) => setDiscordId(e.target.value)} placeholder="ID Discord" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
-                    <button type="button" onClick={verifyDiscordBadge} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">Verifier</button>
-                  </div>
-                </div>
+              <div className="mb-5 grid gap-3">
                 <div className="rounded-xl border border-white/[0.08] bg-white/5 p-3">
                   <p className="mb-2 text-xs text-white/60">Badge Verified : confirme ton email</p>
                   <div className="flex gap-2">

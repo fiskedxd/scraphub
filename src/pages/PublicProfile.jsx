@@ -58,13 +58,17 @@ const PublicProfilePage = () => {
     leet: { label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', glow: '#e63946' }
   };
   const storedBadges = Array.isArray(publicProfile.badges) ? publicProfile.badges : [];
-  const publicBadges = storedBadges.length
-    ? storedBadges.map((badge) => ({ ...badge, ...badgeCatalog[badge.id] }))
-    : [
-        ...(publicProfile.verifiedBadge || profile?.emailVerified ? [{ ...badgeCatalog.verified, id: 'verified' }] : []),
-        ...(isPaidPlan ? [{ ...badgeCatalog.premium, id: 'premium' }] : []),
-        ...(publicProfile.bugHunter ? [{ ...badgeCatalog.bugHunter, id: 'bugHunter' }] : [])
-      ];
+  const mandatoryBadges = [
+    { ...badgeCatalog.leet, id: 'leet' },
+    { ...badgeCatalog.bugHunter, id: 'bugHunter' }
+  ];
+  const optionalBadges = [
+    ...(publicProfile.verifiedBadge || profile?.emailVerified ? [{ ...badgeCatalog.verified, id: 'verified' }] : []),
+    ...(isPaidPlan ? [{ ...badgeCatalog.premium, id: 'premium' }] : [])
+  ];
+  const savedBadges = storedBadges.map((badge) => ({ ...badge, ...badgeCatalog[badge.id] }));
+  const publicBadges = [...mandatoryBadges, ...optionalBadges, ...savedBadges]
+    .filter((badge, index, badges) => badge.image && badges.findIndex((item) => item.id === badge.id) === index);
 
   const handleCardMove = (event) => {
     if (!cardRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
