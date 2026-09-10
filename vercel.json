@@ -8,5 +8,16 @@
       "source": "/uploads/:path*",
       "destination": "https://scraphub-web-backend.fly.dev/uploads/:path*"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
   ]
 }
