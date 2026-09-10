@@ -12,6 +12,14 @@ const gradientPresets = {
   pink: 'linear-gradient(135deg, #ec4899, #be185d)'
 };
 
+const profileFonts = {
+  Inter: 'Inter, "Segoe UI", sans-serif',
+  Poppins: 'Poppins, "Segoe UI", sans-serif',
+  'Space Grotesk': '"Space Grotesk", "Segoe UI", sans-serif',
+  Georgia: 'Georgia, serif',
+  Monospace: '"SFMono-Regular", Consolas, monospace'
+};
+
 const PublicProfilePage = () => {
   const { username } = useParams();
   const { isWhite, isLight } = useTheme();
@@ -24,6 +32,10 @@ const PublicProfilePage = () => {
   const cardRef = useRef(null);
 
   const publicProfile = profile?.publicProfile || {};
+  const profileFont = profileFonts[publicProfile.fontFamily] || profileFonts.Inter;
+  const cardOpacity = Math.max(0.35, Math.min(1, Number(publicProfile.cardOpacity ?? 82) / 100));
+  const glowEnabled = publicProfile.glowEnabled ?? true;
+  const parallaxEnabled = publicProfile.parallaxEnabled ?? true;
   const previewName = publicProfile.displayName || profile?.name || profile?.email;
   const previewHandle =
     publicProfile.username ||
@@ -71,7 +83,7 @@ const PublicProfilePage = () => {
     .filter((badge, index, badges) => badge.image && badges.findIndex((item) => item.id === badge.id) === index);
 
   const handleCardMove = (event) => {
-    if (!cardRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!parallaxEnabled || !cardRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const rect = cardRef.current.getBoundingClientRect();
     const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
     const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -8;
@@ -357,6 +369,7 @@ const PublicProfilePage = () => {
   return (
     <div
       className="profile-page relative min-h-screen w-full overflow-x-hidden bg-transparent"
+      style={{ fontFamily: profileFont }}
       onClick={handleEnterProfile} // ← CLIC N'IMPORTE OÙ SUR LA PAGE
     >
       {/* Écran "Appuyez pour entrer" avec fond noir */}
@@ -375,7 +388,7 @@ const PublicProfilePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Appuyez pour entrer
+              {publicProfile.enterText || 'Appuyez pour entrer'}
             </span>
             <span className="absolute inset-0 " />
           </button>
@@ -455,6 +468,10 @@ const PublicProfilePage = () => {
             onMouseMove={handleCardMove}
             onMouseLeave={resetCardTilt}
             className="profile-card-transparent relative overflow-visible"
+            style={{
+              opacity: cardOpacity,
+              boxShadow: glowEnabled ? '0 0 70px rgba(230, 57, 70, 0.22)' : 'none'
+            }}
           >
             <div className="profile-card-shine" />
             {publicProfile.bannerUrl && (
@@ -501,6 +518,10 @@ const PublicProfilePage = () => {
                     }`}
                   >
                     @{previewHandle}
+                  </p>
+                  <p className="mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/45">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.9)]" />
+                    {Number(publicProfile.views || 0).toLocaleString('fr-FR')} vues
                   </p>
                 </div>
               </div>
