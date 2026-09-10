@@ -49,6 +49,9 @@ const ProfilePage = () => {
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [spotifyUser, setSpotifyUser] = useState(null);
   const [showSpotify, setShowSpotify] = useState(true);
+  const [discordId, setDiscordId] = useState('');
+  const [badgeCode, setBadgeCode] = useState('');
+  const [badgeActionStatus, setBadgeActionStatus] = useState('');
 
   
   useEffect(() => {
@@ -130,8 +133,8 @@ const ProfilePage = () => {
 
   const isBadgeAvailable = (badgeId) => {
     if (badgeId === 'premium') return user?.accountType && user.accountType !== 'free';
-    if (badgeId === 'verified') return user?.emailVerified || user?.security?.emailVerified;
-    if (badgeId === 'leet') return user?.discord?.guildMember || user?.discord?.isMember;
+    if (badgeId === 'verified') return user?.publicProfile?.verifiedBadge;
+    if (badgeId === 'leet') return user?.publicProfile?.discordBadgeVerified;
     if (badgeId === 'bugHunter') return user?.publicProfile?.bugReports?.some((report) => report.status === 'approved');
     return true;
   };
@@ -150,6 +153,50 @@ const ProfilePage = () => {
   };
 
   const handleChange = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const badgeRequest = async (path, body) => {
+    setBadgeActionStatus('');
+    const response = await fetch(`/api/auth/${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Action impossible.');
+    setBadgeActionStatus(data.message || 'Badge mis à jour.');
+    return data;
+  };
+
+  const verifyDiscordBadge = async () => {
+    try {
+      await badgeRequest('discord-badge', { discordId });
+      setBadgeActionStatus('Discord vérifié. Enregistre ensuite les badges affichés.');
+      window.location.reload();
+    } catch (error) {
+      setBadgeActionStatus(error.message);
+    }
+  };
+
+  const requestVerifiedBadge = async () => {
+    try {
+      await badgeRequest('verified-badge/request', {});
+    } catch (error) {
+      setBadgeActionStatus(error.message);
+    }
+  };
+
+  const confirmVerifiedBadge = async () => {
+    try {
+      await badgeRequest('verified-badge/confirm', { code: badgeCode });
+      setBadgeActionStatus('Email vérifié. Enregistre ensuite les badges affichés.');
+      window.location.reload();
+    } catch (error) {
+      setBadgeActionStatus(error.message);
+    }
+  };
   
   const handleFileUpload = async (e, fieldType) => {
     e.preventDefault();
@@ -678,6 +725,24 @@ const ProfilePage = () => {
               <p className={`mb-5 text-sm ${isWhite ? 'text-black/50' : isLight ? 'text-gray-500' : 'text-white/50'}`}>
                 Selectionne les badges que tu veux afficher sur ta page publique.
               </p>
+              <div className="mb-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-white/[0.08] bg-white/5 p-3">
+                  <p className="mb-2 text-xs text-white/60">Badge 1337 : verifie ton ID Discord</p>
+                  <div className="flex gap-2">
+                    <input value={discordId} onChange={(e) => setDiscordId(e.target.value)} placeholder="ID Discord" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+                    <button type="button" onClick={verifyDiscordBadge} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">Verifier</button>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-white/[0.08] bg-white/5 p-3">
+                  <p className="mb-2 text-xs text-white/60">Badge Verified : confirme ton email</p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={requestVerifiedBadge} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">Envoyer le code</button>
+                    <input value={badgeCode} onChange={(e) => setBadgeCode(e.target.value)} placeholder="Code" className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" />
+                    <button type="button" onClick={confirmVerifiedBadge} className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20">Valider</button>
+                  </div>
+                </div>
+              </div>
+              {badgeActionStatus && <p className="mb-4 text-sm text-red-300">{badgeActionStatus}</p>}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {badgeOptions.map((badge) => {
                   const selected = form.badges.includes(badge.id);
