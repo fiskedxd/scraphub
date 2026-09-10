@@ -195,6 +195,28 @@ const AdminPage = () => {
     await handleUpdateUser({ isBanned, banReason });
   };
 
+  const handleBugReportStatus = async (reportId, status) => {
+    if (!selectedUser) return;
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/admin/user/${selectedUser._id}/bug-report/${reportId}`, {
+        method: 'PUT',
+        headers: headers(),
+        body: JSON.stringify({ status })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Validation impossible');
+      setSelectedUser(data.user);
+      setMessage(`Signalement ${status === 'approved' ? 'approuvé' : 'rejeté'}.`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const quickUpdateUser = async (id, updateBody) => {
     setError('');
     setMessage('');
@@ -449,6 +471,24 @@ const AdminPage = () => {
                   </div>
 
                   <div className="grid gap-4">
+                    {(selectedUser.publicProfile?.bugReports || []).length > 0 && (
+                      <div className="space-y-3 rounded-2xl border border-white/[0.08] bg-black/30 p-4">
+                        <label className="text-xs uppercase tracking-wider text-white/50">Signalements BUG Hunter</label>
+                        {selectedUser.publicProfile.bugReports.map((report) => (
+                          <div key={report._id} className="rounded-xl border border-white/[0.08] bg-white/5 p-3">
+                            <p className="text-sm text-white/80">{report.title}</p>
+                            {report.url && <p className="mt-1 truncate text-xs text-white/40">{report.url}</p>}
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <span className="text-xs text-white/50">Statut : {report.status}</span>
+                              <div className="flex gap-2">
+                                <button type="button" onClick={() => handleBugReportStatus(report._id, 'approved')} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500">Approuver</button>
+                                <button type="button" onClick={() => handleBugReportStatus(report._id, 'rejected')} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold hover:bg-red-500">Rejeter</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <label className="text-xs uppercase tracking-wider text-white/50">Modifier le plan</label>
                       <select value={userPlan} onChange={(e) => setUserPlan(e.target.value)} className="w-full rounded-2xl border border-white/[0.12] bg-black/40 px-4 py-3 text-white outline-none">
