@@ -654,7 +654,9 @@ const getVictimManifest = async (logId) => {
 };
 
 const getVictimFile = async (logId, fileId) => {
-  const response = await fetch(`/api/blacksanta/victims/${logId}/files/${fileId}`);
+  const safeLogId = encodeURIComponent(String(logId));
+  const safeFileId = encodeURIComponent(String(fileId || ''));
+  const response = await fetch(`/api/blacksanta/victims/${safeLogId}/files/${safeFileId}`);
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data?.error || 'Erreur de récupération du fichier');
@@ -4376,13 +4378,14 @@ if (searchType === 'discord') {
       if (typeof tree === 'string') {
         const fileId = tree;
         const displayPath = path || fileId;
-        const isSelected = !!selectedVictimFile && (selectedVictimFile.path === displayPath || selectedVictimFile.path === fileId);
+        const resolvedFileId = displayPath.replace(/^\/+/, '');
+        const isSelected = !!selectedVictimFile && (selectedVictimFile.path === displayPath || selectedVictimFile.path === fileId || selectedVictimFile.path === resolvedFileId);
 
         return (
           <button
-            key={fileId}
+            key={resolvedFileId || fileId}
             type="button"
-            onClick={() => handleVictimFileDownload(victimLogId, fileId)}
+            onClick={() => handleVictimFileDownload(victimLogId, resolvedFileId)}
             className={`group flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left transition ${isSelected ? 'bg-white/10' : 'hover:bg-white/5'}`}
           >
             <div className="flex min-w-0 flex-1 items-center gap-2">
