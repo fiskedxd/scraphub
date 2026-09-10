@@ -2017,6 +2017,7 @@ const filterDiscordConversations = (conversations, targetId, searchTerm) => {
                 id: conv.id,
                 name: cleaned.displayName,
                 avatar: cleaned.avatar,
+                messages: conv.messages,
                 totalMessages: conv.messages.length,
                 participants: participants.size || 1,
                 targetMessagesCount: targetId ? conv.messages.filter(m => m.author_id === targetId).length : 0
@@ -3279,6 +3280,68 @@ if (searchType === 'discord') {
                 ))}
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const DiscordMpResultsPanel = () => {
+    if (searchType !== 'discord' || !results?.success || !Array.isArray(results.conversations) || results.conversations.length === 0) {
+      return null;
+    }
+
+    const visibleConversations = results.conversations.slice(0, 12);
+
+    return (
+      <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-black to-black shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
+        <div className="border-b border-white/[0.08] bg-black/50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                {Icons.file}
+                Messages privés
+              </h3>
+              <p className="mt-1 text-[11px] text-white/40">
+                {results.totalConversations} conversations • {results.totalMessages} messages capturés
+              </p>
+            </div>
+            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-cyan-200">
+              Discord MP
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+          {visibleConversations.map((conversation, idx) => (
+            <button
+              key={conversation.id || idx}
+              type="button"
+              onClick={() => {
+                setSelectedConversation(conversation.id || idx);
+                setSelectedConversationData(Array.isArray(conversation.messages) ? conversation.messages : []);
+              }}
+              className="group rounded-2xl border border-white/[0.08] bg-black/40 p-4 text-left transition hover:border-cyan-400/35 hover:bg-cyan-500/[0.04]"
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/25 to-violet-500/20 text-sm font-bold text-cyan-100 ring-1 ring-white/[0.08]">
+                  {(conversation.name || 'MP').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-white/90">{conversation.name || 'Conversation'}</div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-white/40">
+                    <span>{conversation.totalMessages || 0} msgs</span>
+                    <span>•</span>
+                    <span>{conversation.participants || 0} participants</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between text-[10px] text-white/35">
+                <span>{conversation.targetMessagesCount || 0} ciblés</span>
+                <span className="text-cyan-200 transition group-hover:text-cyan-100">Ouvrir →</span>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -4838,6 +4901,7 @@ if (searchType === 'discord') {
         )}
 
         <DomainIntelligencePanel intel={domainIntelligence} />
+        <DiscordMpResultsPanel />
         <ApiFichePanel />
         <IdentityProfileCard profile={identityProfile} graph={relationshipGraph} familyGroups={familyGroups} />
         <FamilyPanel familyGroups={familyGroups} profile={identityProfile} />
@@ -5497,25 +5561,56 @@ if (searchType === 'discord') {
         )}
         
         {searchType === 'discord' && selectedConversation && selectedConversationData !== null && (
-          <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] overflow-hidden">
-            <div className="p-5 border-b border-white/[0.06] bg-black"><button onClick={() => setSelectedConversation(null)} className="p-2 rounded-lg hover:bg-white/10 flex items-center gap-2 text-white/60 hover:text-white text-sm">{Icons.back} Retour</button></div>
-            <div className="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
-              {selectedConversationData.map((msg, idx) => {
-                const messageDomains = extractDomainsFromText(msg.content || '');
-                return (
-                  <div key={idx} className="p-3 rounded-xl border border-white/[0.06] bg-black">
-                    <div className="flex gap-3">
-                      <img src={cleanAvatarUrl(msg.avatar_url)} className="w-8 h-8 rounded-full" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">{msg.author_display || msg.author_username || msg.author_id.slice(0, 8)}</span>
-                          <span className="text-white/30 text-[10px]">{formatTimestamp(msg.timestamp)}</span>
+          <div className="mb-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-black/50 backdrop-blur-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] bg-black/70 p-5">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.28em] text-cyan-200/70">Conversation sélectionnée</div>
+                <h3 className="mt-2 text-lg font-semibold text-white">
+                  {results?.conversations?.find((conv) => conv.id === selectedConversation)?.name || 'Conversation'}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedConversation(null)} className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white/60 transition hover:bg-white/[0.08] hover:text-white">
+                {Icons.back} Retour
+              </button>
+            </div>
+
+            <div className="max-h-[65vh] space-y-3 overflow-y-auto p-5">
+              {selectedConversationData.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/[0.08] bg-black/30 p-6 text-center text-sm text-white/40">
+                  Aucun message dans cette conversation.
+                </div>
+              ) : (
+                selectedConversationData.map((msg, idx) => {
+                  const messageDomains = extractDomainsFromText(msg.content || '');
+                  const isTargetMessage = msg.author_id && settings.targetId && String(msg.author_id) === String(settings.targetId);
+                  const authorLabel = msg.author_display || msg.author_username || (msg.author_id ? `Discord ${String(msg.author_id).slice(-6)}` : 'Utilisateur');
+
+                  return (
+                    <div key={`${msg.timestamp || idx}-${msg.author_id || 'anon'}-${idx}`} className={`flex ${isTargetMessage ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl border p-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)] ${isTargetMessage ? 'border-cyan-500/20 bg-gradient-to-br from-cyan-500/15 to-blue-500/10' : 'border-white/[0.08] bg-black/60'}`}>
+                        <div className="mb-2 flex items-center gap-2">
+                          {!isTargetMessage && (
+                            <img src={cleanAvatarUrl(msg.avatar_url)} alt={authorLabel} className="h-8 w-8 rounded-full border border-white/[0.08] object-cover" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-semibold text-white/90">{authorLabel}</span>
+                              <span className="text-[10px] text-white/35">{formatTimestamp(msg.timestamp)}</span>
+                            </div>
+                          </div>
+                          {isTargetMessage && (
+                            <img src={cleanAvatarUrl(msg.avatar_url)} alt={authorLabel} className="h-8 w-8 rounded-full border border-white/[0.08] object-cover" />
+                          )}
                         </div>
-                        <div className="text-white/60 text-sm mt-1 break-all">{renderTextWithLinks(msg.content || '(aucun texte)', 'text-white/60 text-sm mt-1')}</div>
+
+                        <div className="text-sm leading-6 text-white/75 break-words">
+                          {renderTextWithLinks(msg.content || '(aucun texte)', 'text-white/75 text-sm leading-6')}
+                        </div>
+
                         {messageDomains.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="mt-3 flex flex-wrap gap-2">
                             {messageDomains.slice(0, 4).map((domain, di) => (
-                              <a key={`${domain}-${di}`} href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="text-[10px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded">
+                              <a key={`${domain}-${di}`} href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] text-cyan-200 transition hover:bg-cyan-500/20">
                                 {domain}
                               </a>
                             ))}
@@ -5523,9 +5618,9 @@ if (searchType === 'discord') {
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         )}
