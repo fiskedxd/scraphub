@@ -485,7 +485,7 @@ const ProfilePage = () => {
           {/* PARTIE GAUCHE - FORMULAIRES */}
           <div className="lg:w-96 shrink-0 space-y-6">
             {/* Basic Info */}
-            <details open={openSections.info} onToggle={(event) => setOpenSections((current) => ({ ...current, info: event.currentTarget.open }))} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
+            <details open={openSections.info} onToggle={(event) => { const isOpen = event.currentTarget.open; setOpenSections((current) => ({ ...current, info: isOpen })); }} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
               <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
@@ -563,7 +563,7 @@ const ProfilePage = () => {
             </details>
 
             {/* Customization */}
-            <details open={openSections.customization} onToggle={(event) => setOpenSections((current) => ({ ...current, customization: event.currentTarget.open }))} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
+            <details open={openSections.customization} onToggle={(event) => { const isOpen = event.currentTarget.open; setOpenSections((current) => ({ ...current, customization: isOpen })); }} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
               <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
