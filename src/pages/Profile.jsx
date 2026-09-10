@@ -12,14 +12,6 @@ const gradientPresets = {
   pink: 'linear-gradient(135deg, #ec4899, #be185d)'
 };
 
-const profileFonts = {
-  Inter: 'Inter, "Segoe UI", sans-serif',
-  Poppins: 'Poppins, "Segoe UI", sans-serif',
-  'Space Grotesk': '"Space Grotesk", "Segoe UI", sans-serif',
-  Georgia: 'Georgia, serif',
-  Monospace: '"SFMono-Regular", Consolas, monospace'
-};
-
 const badgeOptions = [
   { id: 'bugHunter', label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', requirement: 'Disponible pour tous' },
   { id: 'qlf', label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
@@ -46,11 +38,6 @@ const ProfilePage = () => {
     backgroundPreset: 'cool-blue',
     profileAnimation: 'none',
     profileTheme: 'dark',
-    fontFamily: 'Inter',
-    enterText: 'Appuyez pour entrer',
-    cardOpacity: 82,
-    glowEnabled: true,
-    parallaxEnabled: true,
     profileVisibility: 'public',
     showEmail: false,
     showLocation: true,
@@ -64,17 +51,6 @@ const ProfilePage = () => {
   const [showSpotify, setShowSpotify] = useState(true);
   const [badgeCode, setBadgeCode] = useState('');
   const [badgeActionStatus, setBadgeActionStatus] = useState('');
-  const [openSections, setOpenSections] = useState({
-    info: true,
-    customization: true,
-    badges: false,
-    visibility: false,
-    spotify: false
-  });
-
-  const toggleSection = (section) => {
-    setOpenSections((current) => ({ ...current, [section]: !current[section] }));
-  };
 
   
   useEffect(() => {
@@ -114,11 +90,6 @@ const ProfilePage = () => {
       backgroundPreset: user.publicProfile?.backgroundPreset || 'cool-blue',
       profileAnimation: user.publicProfile?.profileAnimation || 'none',
       profileTheme: user.publicProfile?.profileTheme || 'dark',
-      fontFamily: user.publicProfile?.fontFamily || 'Inter',
-      enterText: user.publicProfile?.enterText || 'Appuyez pour entrer',
-      cardOpacity: user.publicProfile?.cardOpacity ?? 82,
-      glowEnabled: user.publicProfile?.glowEnabled ?? true,
-      parallaxEnabled: user.publicProfile?.parallaxEnabled ?? true,
       profileVisibility: user.privacy?.profileVisibility || 'public',
       showEmail: user.publicProfile?.showEmail ?? user.privacy?.showEmail ?? false,
       showLocation: user.publicProfile?.showLocation ?? user.privacy?.showLocation ?? true,
@@ -329,11 +300,6 @@ const ProfilePage = () => {
         backgroundPreset: form.backgroundPreset,
         profileAnimation: form.profileAnimation,
         profileTheme: form.profileTheme,
-        fontFamily: form.fontFamily,
-        enterText: form.enterText,
-        cardOpacity: form.cardOpacity,
-        glowEnabled: form.glowEnabled,
-        parallaxEnabled: form.parallaxEnabled,
         showEmail: form.showEmail,
         showLocation: form.showLocation,
         badges: form.badges
@@ -508,17 +474,14 @@ const ProfilePage = () => {
           {/* PARTIE GAUCHE - FORMULAIRES */}
           <div className="lg:w-96 shrink-0 space-y-6">
             {/* Basic Info */}
-            <details open={openSections.info} onToggle={(event) => { const isOpen = event.currentTarget.open; setOpenSections((current) => ({ ...current, info: isOpen })); }} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
+            <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
-              <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
-                <span className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-5">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{Icons.user}</svg>
                 Informations
-                </span>
-                <span className="text-xs uppercase tracking-[0.18em] text-white/40 transition-transform group-open:rotate-180">⌄</span>
-              </summary>
-              <div className="space-y-4 border-t border-white/10 px-6 pb-6 pt-5">
+              </h2>
+              <div className="space-y-4">
                 <div>
                   <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Nom d'affichage</label>
                   <input
@@ -583,20 +546,17 @@ const ProfilePage = () => {
                   />
                 </div>
               </div>
-            </details>
+            </div>
 
             {/* Customization */}
-            <details open={openSections.customization} onToggle={(event) => { const isOpen = event.currentTarget.open; setOpenSections((current) => ({ ...current, customization: isOpen })); }} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
+            <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
-              <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
-                <span className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-5">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{Icons.brush}</svg>
                 Personnalisation
-                </span>
-                <span className="text-xs uppercase tracking-[0.18em] text-white/40 transition-transform group-open:rotate-180">⌄</span>
-              </summary>
-              <div className="space-y-4 border-t border-white/10 px-6 pb-6 pt-5">
+              </h2>
+              <div className="space-y-4">
                 <div>
                   <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Avatar</label>
                   <div className="flex gap-3 items-start">
@@ -715,7 +675,7 @@ const ProfilePage = () => {
                     <select
                       value={form.profileAnimation}
                       onChange={(e) => handleChange('profileAnimation', e.target.value)}
-                      className={`w-full appearance-none px-3 py-2 rounded-xl border bg-black text-white focus:outline-none text-sm [color-scheme:dark] ${
+                      className={`w-full px-3 py-2 rounded-xl border focus:outline-none text-sm ${
                         isWhite ? 'border-black/10 bg-black/5 text-black' :
                         isLight ? 'border-gray-200 bg-gray-100 text-gray-900' :
                         'border-white/[0.08] bg-white/5 text-white'
@@ -731,7 +691,7 @@ const ProfilePage = () => {
                     <select
                       value={form.profileTheme}
                       onChange={(e) => handleChange('profileTheme', e.target.value)}
-                      className={`w-full appearance-none px-3 py-2 rounded-xl border bg-black text-white focus:outline-none text-sm [color-scheme:dark] ${
+                      className={`w-full px-3 py-2 rounded-xl border focus:outline-none text-sm ${
                         isWhite ? 'border-black/10 bg-black/5 text-black' :
                         isLight ? 'border-gray-200 bg-gray-100 text-gray-900' :
                         'border-white/[0.08] bg-white/5 text-white'
@@ -742,54 +702,8 @@ const ProfilePage = () => {
                     </select>
                   </div>
                 </div>
-
-                <div>
-                  <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Texte d'entrée</label>
-                  <input
-                    value={form.enterText}
-                    onChange={(e) => handleChange('enterText', e.target.value)}
-                    maxLength={60}
-                    placeholder="Appuyez pour entrer"
-                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none transition ${
-                      isWhite ? 'border-black/10 bg-black/5 text-black focus:border-black/30' :
-                      isLight ? 'border-gray-200 bg-gray-100 text-gray-900 focus:border-gray-400' :
-                      'border-white/[0.08] bg-black/40 text-white focus:border-white/30'
-                    }`}
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Police du profil</label>
-                  <select
-                    value={form.fontFamily}
-                    onChange={(e) => handleChange('fontFamily', e.target.value)}
-                    className={`w-full appearance-none rounded-xl border bg-black px-3 py-2 text-sm text-white focus:outline-none [color-scheme:dark] ${
-                      isWhite ? 'border-black/10 bg-black/5 text-black' :
-                      isLight ? 'border-gray-200 bg-gray-100 text-gray-900' :
-                      'border-white/[0.08] bg-black/40 text-white'
-                    }`}
-                  >
-                    {Object.keys(profileFonts).map((font) => <option key={font} value={font}>{font}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Opacité des cartes: {form.cardOpacity}%</label>
-                  <input type="range" min="35" max="100" value={form.cardOpacity} onChange={(e) => handleChange('cardOpacity', Number(e.target.value))} className="w-full accent-red-500" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <label className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-sm ${isWhite ? 'border-black/10 bg-black/5' : isLight ? 'border-gray-200 bg-gray-100' : 'border-white/[0.08] bg-black/30'}`}>
-                    <span>Glow</span>
-                    <input type="checkbox" checked={form.glowEnabled} onChange={(e) => handleChange('glowEnabled', e.target.checked)} className="h-4 w-4 accent-red-500" />
-                  </label>
-                  <label className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-sm ${isWhite ? 'border-black/10 bg-black/5' : isLight ? 'border-gray-200 bg-gray-100' : 'border-white/[0.08] bg-black/30'}`}>
-                    <span>Parallax</span>
-                    <input type="checkbox" checked={form.parallaxEnabled} onChange={(e) => handleChange('parallaxEnabled', e.target.checked)} className="h-4 w-4 accent-red-500" />
-                  </label>
-                </div>
               </div>
-            </details>
+            </div>
 
             {/* Badges */}
             <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
@@ -973,7 +887,7 @@ const ProfilePage = () => {
           <div className="flex-1 space-y-6">
             <div className={`sticky top-24 backdrop-blur-xl rounded-2xl border overflow-hidden transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
-            }`} style={{ fontFamily: profileFonts[form.fontFamily] || profileFonts.Inter }}>
+            }`}>
               {/* BANDEAU PREVIEW */}
               <div className="relative h-64 overflow-hidden" style={backgroundStyle}>
                 {form.backgroundType === 'video' && form.backgroundUrl && (
@@ -989,7 +903,7 @@ const ProfilePage = () => {
                       'bg-black/95 border-white/10 text-white'}
                     ${form.profileAnimation === 'glow' ? 'shadow-[0_0_45px_rgba(255,255,255,0.1)]' : 
                       form.profileAnimation === 'pulse' ? 'animate-pulse' : 
-                      form.profileAnimation === 'float' ? 'transition-all duration-500 hover:-translate-y-2' : ''}`} style={{ opacity: form.cardOpacity / 100, boxShadow: form.glowEnabled ? '0 0 45px rgba(230, 57, 70, 0.35)' : 'none' }}>
+                      form.profileAnimation === 'float' ? 'transition-all duration-500 hover:-translate-y-2' : ''}`}>
                     <img src={form.avatar || '/pdp.png'} alt="Avatar" className="h-20 w-20 rounded-full border-2 border-white/20 object-cover mx-auto mb-3" />
                     <h3 className="text-xl font-semibold">{form.displayName || 'Nom d\'affichage'}</h3>
                     <p className="text-sm text-gray-400 mb-3">@{previewUsername}</p>
