@@ -3291,14 +3291,14 @@ if (searchType === 'discord') {
       return null;
     }
 
-    const visibleConversations = results.conversations.slice(0, 12);
+    const visibleConversations = results.conversations.slice(0, 100);
 
     return (
-      <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-black to-black shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
-        <div className="border-b border-white/[0.08] bg-black/50 p-4">
+      <div className="mb-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+        <div className="border-b border-white/[0.08] bg-black p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-cyan-200">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-white/90">
                 {Icons.file}
                 Messages privés
               </h3>
@@ -3306,43 +3306,65 @@ if (searchType === 'discord') {
                 {results.totalConversations} conversations • {results.totalMessages} messages capturés
               </p>
             </div>
-            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-cyan-200">
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-white/50">
               Discord MP
             </span>
           </div>
         </div>
 
-        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
-          {visibleConversations.map((conversation, idx) => (
-            <button
-              key={conversation.id || idx}
-              type="button"
-              onClick={() => {
-                setSelectedConversation(conversation.id || idx);
-                setSelectedConversationData(Array.isArray(conversation.messages) ? conversation.messages : []);
-              }}
-              className="group rounded-2xl border border-white/[0.08] bg-black/40 p-4 text-left transition hover:border-cyan-400/35 hover:bg-cyan-500/[0.04]"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/25 to-violet-500/20 text-sm font-bold text-cyan-100 ring-1 ring-white/[0.08]">
+        <div className="max-h-[70vh] overflow-y-auto bg-black">
+          {visibleConversations.map((conversation, idx) => {
+            const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+            const preview = messages
+              .slice(0, 2)
+              .map((msg) => (msg.content || '').trim())
+              .filter(Boolean)
+              .slice(0, 2)
+              .join(' / ');
+
+            return (
+              <button
+                key={conversation.id || idx}
+                type="button"
+                onClick={() => {
+                  setSelectedConversation(conversation.id || idx);
+                  setSelectedConversationData(messages);
+                }}
+                className="flex w-full items-start gap-3 border-b border-white/[0.06] bg-black px-4 py-3 text-left transition hover:bg-white/[0.02]"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-xs font-bold text-white/80 ring-1 ring-white/[0.08]">
                   {(conversation.name || 'MP').slice(0, 2).toUpperCase()}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-white/90">{conversation.name || 'Conversation'}</div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-white/40">
-                    <span>{conversation.totalMessages || 0} msgs</span>
-                    <span>•</span>
-                    <span>{conversation.participants || 0} participants</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="mt-3 flex items-center justify-between text-[10px] text-white/35">
-                <span>{conversation.targetMessagesCount || 0} ciblés</span>
-                <span className="text-cyan-200 transition group-hover:text-cyan-100">Ouvrir →</span>
-              </div>
-            </button>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm font-semibold text-white/90">{conversation.name || `Conversation ${idx + 1}`}</div>
+                    <span className="shrink-0 text-[10px] text-white/40">{conversation.totalMessages || 0} msgs</span>
+                  </div>
+
+                  <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-white/35">
+                    <span>{conversation.participants || 0} participants</span>
+                    <span>•</span>
+                    <span>{conversation.targetMessagesCount || 0} ciblés</span>
+                  </div>
+
+                  {preview ? (
+                    <div className="mt-2 text-[11px] leading-5 text-white/60">
+                      {preview.length > 180 ? `${preview.slice(0, 180)}...` : preview}
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-[11px] text-white/35">Aucun texte dans cette conversation.</div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+
+          {results.conversations.length > visibleConversations.length && (
+            <div className="p-3 text-center text-[10px] uppercase tracking-[0.2em] text-white/35">
+              +{results.conversations.length - visibleConversations.length} autres conversations
+            </div>
+          )}
         </div>
       </div>
     );
