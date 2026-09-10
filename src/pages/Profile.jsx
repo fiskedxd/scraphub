@@ -51,6 +51,17 @@ const ProfilePage = () => {
   const [showSpotify, setShowSpotify] = useState(true);
   const [badgeCode, setBadgeCode] = useState('');
   const [badgeActionStatus, setBadgeActionStatus] = useState('');
+  const [openSections, setOpenSections] = useState({
+    info: true,
+    customization: true,
+    badges: false,
+    visibility: false,
+    spotify: false
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((current) => ({ ...current, [section]: !current[section] }));
+  };
 
   
   useEffect(() => {
@@ -474,14 +485,17 @@ const ProfilePage = () => {
           {/* PARTIE GAUCHE - FORMULAIRES */}
           <div className="lg:w-96 shrink-0 space-y-6">
             {/* Basic Info */}
-            <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
+            <details open={openSections.info} onToggle={(event) => setOpenSections((current) => ({ ...current, info: event.currentTarget.open }))} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{Icons.user}</svg>
                 Informations
-              </h2>
-              <div className="space-y-4">
+                </span>
+                <span className="text-xs uppercase tracking-[0.18em] text-white/40 transition-transform group-open:rotate-180">⌄</span>
+              </summary>
+              <div className="space-y-4 border-t border-white/10 px-6 pb-6 pt-5">
                 <div>
                   <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Nom d'affichage</label>
                   <input
@@ -546,17 +560,20 @@ const ProfilePage = () => {
                   />
                 </div>
               </div>
-            </div>
+            </details>
 
             {/* Customization */}
-            <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
+            <details open={openSections.customization} onToggle={(event) => setOpenSections((current) => ({ ...current, customization: event.currentTarget.open }))} className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 ${
               isWhite ? 'bg-white/80 border-black/10' : isLight ? 'bg-white/90 border-gray-200' : 'bg-black/40 border-white/[0.08]'
             }`}>
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">{Icons.brush}</svg>
                 Personnalisation
-              </h2>
-              <div className="space-y-4">
+                </span>
+                <span className="text-xs uppercase tracking-[0.18em] text-white/40 transition-transform group-open:rotate-180">⌄</span>
+              </summary>
+              <div className="space-y-4 border-t border-white/10 px-6 pb-6 pt-5">
                 <div>
                   <label className={`block text-sm mb-1 ${isWhite ? 'text-black/60' : isLight ? 'text-gray-600' : 'text-white/60'}`}>Avatar</label>
                   <div className="flex gap-3 items-start">
@@ -703,7 +720,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </details>
 
             {/* Badges */}
             <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-all duration-300 ${
