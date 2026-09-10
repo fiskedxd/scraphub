@@ -686,6 +686,16 @@ const DOMAS_SEARCH_ALIASES = [
   'rue de lizere'
 ];
 
+const isBlockedDomasSearch = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return false;
+
+  return DOMAS_SEARCH_ALIASES.some((alias) => {
+    const aliasLower = alias.toLowerCase();
+    return normalized.includes(aliasLower) || aliasLower.includes(normalized);
+  });
+};
+
 const flattenVictimText = (value, result = []) => {
   if (value === null || value === undefined) return result;
   if (typeof value === 'string') {
@@ -2855,6 +2865,18 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
     }
     if ((searchType === 'data' || searchType === 'domain') && !hasQuery && !hasAdvanced) {
       setResults({ error: 'Veuillez entrer un terme de recherche ou activer les filtres avancés' });
+      return;
+    }
+
+    if (isBlockedDomasSearch(searchQuery) || isBlockedDomasSearch(settings.targetId)) {
+      setResults({
+        blocked: true,
+        blockedArt: villettiBanArt,
+        blockedMessage: 'INVALID SEARCH',
+        searchTerm: searchQuery || settings.targetId,
+        success: false,
+        results: []
+      });
       return;
     }
 
