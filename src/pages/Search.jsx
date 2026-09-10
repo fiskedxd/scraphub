@@ -64,6 +64,22 @@ const normalizePhone = (str) => {
   return cleaned;
 };
 const normalizeName = (str) => String(str).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const replaceDiscordNameAliases = (text) => {
+  if (text === null || text === undefined) return '';
+
+  return String(text)
+    .replace(/\bnolann\b/gi, 'yaniss')
+    .replace(/\bdomas\b/gi, 'conan');
+};
+const normalizeDiscordAuthorName = (name) => {
+  const raw = String(name ?? '').trim();
+  if (!raw) return raw;
+
+  const replaced = replaceDiscordNameAliases(raw);
+  if (!replaced) return replaced;
+
+  return replaced.charAt(0).toUpperCase() + replaced.slice(1);
+};
 const normalizeUrl = (str) => {
   try {
     const url = new URL(str);
@@ -155,7 +171,7 @@ const sanitizeSensitiveValue = (value) => {
 
 const renderTextWithLinks = (text, className = '') => {
   if (!text) return null;
-  const rawText = sanitizeDisplayText(text);
+  const rawText = replaceDiscordNameAliases(sanitizeDisplayText(text));
   const segments = [];
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   let lastIndex = 0;
@@ -1937,7 +1953,7 @@ const filterDiscordConversations = (conversations, targetId, searchTerm) => {
         if (!uniqueAuthorsMap.has(key)) {
             uniqueAuthorsMap.set(key, {
                 id: m.author_id || key,
-                name: m.author_display || m.author_username || key,
+                name: normalizeDiscordAuthorName(m.author_display || m.author_username || key),
                 avatar: m.avatar_url || null,
                 messageCount: 0
             });
@@ -2032,8 +2048,8 @@ const filterDiscordConversations = (conversations, targetId, searchTerm) => {
 const parseMessageLineFast = (line) => {
     const match1 = line.match(/^\[([^\]]+)\]\s*([^:]+):\s*(.*)$/);
     if (match1) {
-        const author = match1[2].trim();
-        const idMatch = author.match(/\((\d+)\)$/);
+        const author = normalizeDiscordAuthorName(match1[2].trim());
+        const idMatch = match1[2].trim().match(/\((\d+)\)$/);
         return {
             author_id: idMatch ? idMatch[1] : null,
             author_username: author,
@@ -2051,8 +2067,8 @@ const parseMessageLineFast = (line) => {
             if (data.author_id) {
                 return {
                     author_id: String(data.author_id),
-                    author_username: data.author_username || '',
-                    author_display: data.author_display || data.author_username || '',
+                    author_username: normalizeDiscordAuthorName(data.author_username || ''),
+                    author_display: normalizeDiscordAuthorName(data.author_display || data.author_username || ''),
                     avatar_url: data.avatar_url || null,
                     content: data.content || '',
                     timestamp: data.timestamp || '',
@@ -4359,19 +4375,24 @@ if (searchType === 'discord') {
       
       if (typeof tree === 'string') {
         const fileId = tree;
+        const displayPath = path || fileId;
+        const isSelected = !!selectedVictimFile && (selectedVictimFile.path === displayPath || selectedVictimFile.path === fileId);
+
         return (
-          <div key={fileId} className="group flex items-center justify-between py-1 px-2 rounded hover:bg-white/5 transition">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <button
+            key={fileId}
+            type="button"
+            onClick={() => handleVictimFileDownload(victimLogId, fileId)}
+            className={`group flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left transition ${isSelected ? 'bg-white/10' : 'hover:bg-white/5'}`}
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               {Icons.file}
-              <span className="text-xs text-white/70 truncate font-mono">{path || fileId}</span>
+              <span className="truncate font-mono text-xs text-white/70">{displayPath}</span>
             </div>
-            <button 
-              onClick={() => handleVictimFileDownload(victimLogId, fileId)}
-              className="opacity-0 group-hover:opacity-100 transition px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-white/50 text-[10px]"
-            >
-              Voir
-            </button>
-          </div>
+            <span className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
+              Ouvrir
+            </span>
+          </button>
         );
       }
       
@@ -5605,7 +5626,7 @@ if (searchType === 'discord') {
                 selectedConversationData.map((msg, idx) => {
                   const messageDomains = extractDomainsFromText(msg.content || '');
                   const isTargetMessage = msg.author_id && settings.targetId && String(msg.author_id) === String(settings.targetId);
-                  const authorLabel = msg.author_display || msg.author_username || (msg.author_id ? `Discord ${String(msg.author_id).slice(-6)}` : 'Utilisateur');
+                  const authorLabel = normalizeDiscordAuthorName(msg.author_display || msg.author_username || (msg.author_id ? `Discord ${String(msg.author_id).slice(-6)}` : 'Utilisateur'));
 
                   return (
                     <div key={`${msg.timestamp || idx}-${msg.author_id || 'anon'}-${idx}`} className={`flex ${isTargetMessage ? 'justify-end' : 'justify-start'}`}>
