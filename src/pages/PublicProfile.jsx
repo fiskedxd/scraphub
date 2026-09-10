@@ -50,12 +50,12 @@ const PublicProfilePage = () => {
   const hasEmailFlag = showEmail && profile?.email;
   const isPaidPlan = profile?.accountType && profile.accountType !== 'free';
   const badgeCatalog = {
-    bugHunter: { label: 'BUG Hunter', image: '/uploads/badges/bughunter.png', glow: '#e63946' },
-    qlf: { label: 'QLF', image: '/uploads/badges/qlf.png', glow: '#e63946' },
-    eternal: { label: 'Éternel', image: '/uploads/badges/eternal.png', glow: '#ffffff' },
-    premium: { label: 'Premium', image: '/uploads/badges/prenium.png', glow: '#f50aed' },
-    verified: { label: 'Verified', image: '/uploads/badges/verified.png', glow: '#10b981' },
-    leet: { label: '1337', image: '/uploads/badges/1337.png', glow: '#e63946' }
+    bugHunter: { label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', glow: '#e63946' },
+    qlf: { label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png', glow: '#e63946' },
+    eternal: { label: 'Éternel', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/eternal.png', glow: '#ffffff' },
+    premium: { label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png', glow: '#f50aed' },
+    verified: { label: 'Verified', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png', glow: '#10b981' },
+    leet: { label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', glow: '#e63946' }
   };
   const storedBadges = Array.isArray(publicProfile.badges) ? publicProfile.badges : [];
   const publicBadges = storedBadges.length

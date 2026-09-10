@@ -13,12 +13,12 @@ const gradientPresets = {
 };
 
 const badgeOptions = [
-  { id: 'bugHunter', label: 'BUG Hunter', image: '/uploads/badges/bughunter.png', requirement: 'Bug approuve par ScrapHub' },
-  { id: 'qlf', label: 'QLF', image: '/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
-  { id: 'eternal', label: 'Eternel', image: '/uploads/badges/eternal.png', requirement: 'Badge communautaire' },
-  { id: 'premium', label: 'Premium', image: '/uploads/badges/prenium.png', requirement: 'Plan payant' },
-  { id: 'verified', label: 'Verified', image: '/uploads/badges/verified.png', requirement: 'Email verifie' },
-  { id: 'leet', label: '1337', image: '/uploads/badges/1337.png', requirement: 'Membre du serveur Discord' }
+  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', requirement: 'Bug approuve par ScrapHub' },
+  { id: 'qlf', label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
+  { id: 'eternal', label: 'Eternel', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/eternal.png', requirement: 'Badge communautaire' },
+  { id: 'premium', label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png', requirement: 'Plan payant' },
+  { id: 'verified', label: 'Verified', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png', requirement: 'Email verifie' },
+  { id: 'leet', label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', requirement: 'Membre du serveur Discord' }
 ];
 
 const ProfilePage = () => {
