@@ -2787,10 +2787,10 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
   
   const isVillettiQuery = () => {
     const normalizedQuery = searchQuery.toLowerCase();
-    if (normalizedQuery.includes('villetti')) return true;
+    if (normalizedQuery.includes('villettti')) return true;
     if (settings.advancedMode) {
       const advancedText = [settings.firstName, settings.birthDate, settings.city, settings.birthYear].join(' ').toLowerCase();
-      return advancedText.includes('villetti');
+      return advancedText.includes('villettti');
     }
     return false;
   };
