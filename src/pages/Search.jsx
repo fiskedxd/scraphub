@@ -4939,6 +4939,100 @@ if (searchType === 'discord') {
       return <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 text-sm text-amber-100">La base vocale n'est pas montée sur le backend. Configure `VOICE_DB_DIR` vers le dossier `vocdb` autorisé, puis redémarre le service.</div>;
     }
 
+    const formatAudioTime = (value) => {
+      if (!Number.isFinite(value)) return '0:00';
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60).toString().padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    };
+
+    const VoiceAudioPlayer = ({ file }) => {
+      const audioRef = useRef(null);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [progress, setProgress] = useState(0);
+      const [duration, setDuration] = useState(0);
+      const [volume, setVolume] = useState(1);
+
+      const togglePlayback = async () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+          audioRef.current.pause();
+        } else {
+          await audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+      };
+
+      const updateProgress = () => {
+        if (!audioRef.current) return;
+        setProgress(audioRef.current.currentTime);
+      };
+
+      const seekAudio = (event) => {
+        if (!audioRef.current) return;
+        const nextTime = Number(event.target.value);
+        audioRef.current.currentTime = nextTime;
+        setProgress(nextTime);
+      };
+
+      const updateVolume = (event) => {
+        const nextVolume = Number(event.target.value);
+        setVolume(nextVolume);
+        if (audioRef.current) audioRef.current.volume = nextVolume;
+      };
+
+      return (
+        <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#080a0d] shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+          <audio
+            ref={audioRef}
+            src={file.url}
+            preload="metadata"
+            onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+            onTimeUpdate={updateProgress}
+            onEnded={() => { setIsPlaying(false); setProgress(0); }}
+          />
+          <div className="flex items-center gap-3 px-3 py-3">
+            <button
+              type="button"
+              onClick={togglePlayback}
+              aria-label={isPlaying ? 'Pause' : 'Lire'}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-300/10 text-cyan-200 transition hover:bg-cyan-300/20"
+            >
+              {isPlaying ? '||' : '▶'}
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex items-center justify-between gap-3 text-[10px] font-mono text-white/35">
+                <span className="truncate">{file.filename}</span>
+                <span className="shrink-0">{formatAudioTime(progress)} / {formatAudioTime(duration)}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                step="0.01"
+                value={Math.min(progress, duration || 0)}
+                onChange={seekAudio}
+                className="voice-range w-full"
+                aria-label="Progression audio"
+              />
+            </div>
+            <span className="hidden text-xs text-white/35 sm:inline">VOL</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={updateVolume}
+              className="voice-range hidden w-16 sm:block"
+              aria-label="Volume audio"
+            />
+            <a href={file.url} download className="text-xs text-white/35 transition hover:text-cyan-200" title="Télécharger le vocal">↓</a>
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-500/20 bg-black shadow-2xl shadow-black/40">
         <div className="border-b border-cyan-500/15 bg-cyan-500/5 p-5">
@@ -4958,8 +5052,7 @@ if (searchType === 'discord') {
               <div className="space-y-3">
                 {group.files.map((file) => (
                   <div key={file.url} className="rounded-lg border border-white/[0.06] bg-black/50 p-3">
-                    <div className="mb-2 truncate font-mono text-[11px] text-white/55" title={file.filename}>{file.filename}</div>
-                    <audio controls preload="none" className="h-9 w-full" src={file.url} />
+                    <VoiceAudioPlayer file={file} />
                   </div>
                 ))}
               </div>
