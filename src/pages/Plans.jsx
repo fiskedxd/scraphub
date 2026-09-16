@@ -37,9 +37,9 @@ export default function PlansPage() {
       const response = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ plan: plan.id })
       });
       const data = await response.json();
@@ -57,7 +57,8 @@ export default function PlansPage() {
     try {
       const response = await fetch('/api/developer/key', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ plan: plan.id })
       });
       const data = await response.json();

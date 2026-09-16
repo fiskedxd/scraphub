@@ -6,16 +6,6 @@ const DEFAULT_ACCENT_COLOR = '#38bdf8';
 const VALID_THEMES = new Set(['dark', 'light', 'white']);
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
-const getStoredTheme = () => {
-  const saved = localStorage.getItem('theme');
-  return VALID_THEMES.has(saved) ? saved : 'dark';
-};
-
-const getStoredAccentColor = () => {
-  const saved = localStorage.getItem('accentColor');
-  return HEX_COLOR_PATTERN.test(saved || '') ? saved : DEFAULT_ACCENT_COLOR;
-};
-
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -25,16 +15,14 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(getStoredTheme);
-  const [accentColor, setAccentColorState] = useState(getStoredAccentColor);
+  const [theme, setTheme] = useState('dark');
+  const [accentColor, setAccentColorState] = useState(DEFAULT_ACCENT_COLOR);
 
   useEffect(() => {
-    localStorage.setItem('theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('accentColor', accentColor);
     document.documentElement.style.setProperty('--accent-color', accentColor);
     document.documentElement.style.setProperty('--accent-color-hover', `${accentColor}33`);
   }, [accentColor]);

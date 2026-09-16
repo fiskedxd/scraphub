@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+let authAttempts = [];
+let authLockoutUntil = 0;
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -28,26 +31,16 @@ const LoginPage = () => {
 
   const getNow = () => Date.now();
   const getAttempts = () => {
-    try {
-      const raw = localStorage.getItem('auth_attempts');
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+    return authAttempts;
   };
   const saveAttempts = (attempts) => {
-    try {
-      localStorage.setItem('auth_attempts', JSON.stringify(attempts));
-    } catch {}
+    authAttempts = attempts;
   };
   const getLockoutUntil = () => {
-    const v = localStorage.getItem('auth_lockout_until');
-    return v ? parseInt(v, 10) : 0;
+    return authLockoutUntil;
   };
   const setLockoutUntil = (ts) => {
-    try {
-      localStorage.setItem('auth_lockout_until', String(ts));
-    } catch {}
+    authLockoutUntil = ts;
   };
 
   const handleChange = (e) => {

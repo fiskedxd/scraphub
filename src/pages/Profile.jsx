@@ -157,9 +157,9 @@ const ProfilePage = () => {
     const response = await fetch(`/api/auth/${path}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+        'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(body)
     });
     const data = await response.json();
@@ -217,9 +217,6 @@ const ProfilePage = () => {
     });
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Session expirée.');
-
       const data = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         const apiOrigin =
@@ -227,7 +224,7 @@ const ProfilePage = () => {
           (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://scraphub-web-backend.fly.dev');
         xhr.open('POST', `${apiOrigin}/api/upload/profile`);
         xhr.timeout = 0;
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.withCredentials = true;
 
         xhr.upload.onprogress = (event) => {
           if (!event.lengthComputable) return;
@@ -322,9 +319,8 @@ const ProfilePage = () => {
 
   const handleConnectSpotify = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/spotify/login', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await response.json();
       if (data.authUrl) {
@@ -337,10 +333,9 @@ const ProfilePage = () => {
 
   const handleDisconnectSpotify = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/spotify/disconnect', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (response.ok) {
         setSpotifyConnected(false);
@@ -354,13 +349,12 @@ const ProfilePage = () => {
 
   const handleToggleSpotifyVisibility = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/spotify/toggle-visibility', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ show: !showSpotify })
       });
       if (response.ok) {

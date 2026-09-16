@@ -24,7 +24,7 @@ const ChatMessage = require('./models/ChatMessage');
 const PaymentTransaction = require('./models/PaymentTransaction');
 const spotifyRouter = require('./routes/spotify');
 const { PLAN_POLICY, getPlanPolicy, serializePlanPolicy } = require('./planPolicy');
-const { getKey } = require('./lib/apiKeys');
+const { getKey, registerRuntimeKey } = require('./lib/apiKeys');
 const { getDocumentationForPlan } = require('./apiDocumentation');
 
 const MAIL_SERVICE = process.env.MAIL_SERVICE || 'gmail';
@@ -32,6 +32,8 @@ const MAIL_USER = process.env.MAIL_USER;
 const MAIL_APP_PASSWORD = process.env.MAIL_APP_PASSWORD;
 const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || 'Osint Build';
 const MAIL_FROM_EMAIL = process.env.MAIL_FROM_EMAIL || MAIL_USER;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const DISCORD_BADGE_GUILD_ID = process.env.DISCORD_GUILD_ID || '1523797318376231022';
 
 const emailTransporter = MAIL_USER && MAIL_APP_PASSWORD ? nodemailer.createTransport({
   service: MAIL_SERVICE,
@@ -41,7 +43,24 @@ const emailTransporter = MAIL_USER && MAIL_APP_PASSWORD ? nodemailer.createTrans
   }
 }) : null;
 
-const generateVerificationCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateVerificationCode = () => require('crypto').randomInt(100000, 1000000).toString();
+const AUTH_COOKIE = 'scraphub_session';
+const ADMIN_COOKIE = 'scraphub_admin';
+const cookieOptions = `Path=/; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+
+const getCookie = (req, name) => {
+  const header = req.headers.cookie || '';
+  const match = header.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
+};
+
+const setAuthCookie = (res, name, token, maxAgeSeconds = 7 * 24 * 60 * 60) => {
+  res.append('Set-Cookie', `${name}=${encodeURIComponent(token)}; Max-Age=${maxAgeSeconds}; ${cookieOptions}`);
+};
+
+const clearAuthCookie = (res, name) => {
+  res.append('Set-Cookie', `${name}=; Max-Age=0; ${cookieOptions}`);
+};
 
 const sendVerificationEmail = async (email, code) => {
   if (!emailTransporter) {
@@ -68,6 +87,26 @@ const sendVerificationEmail = async (email, code) => {
   await emailTransporter.sendMail(mailOptions);
 };
 
+const sendBadgeVerificationEmail = async (email, code) => {
+  if (!emailTransporter) throw new Error('SMTP email transporteur non configuré');
+  await emailTransporter.sendMail({
+    from: `${MAIL_FROM_NAME} <${MAIL_FROM_EMAIL}>`,
+    to: email,
+    subject: 'Activation du badge Verified',
+    html: `<div style="font-family:Arial,sans-serif;color:#222"><h2>Activation du badge Verified</h2><p>Ton code est :</p><strong style="font-size:28px;letter-spacing:.2em">${code}</strong><p>Valable 15 minutes.</p></div>`
+  });
+};
+
+async function isDiscordGuildMember(discordId) {
+  if (!DISCORD_BOT_TOKEN) throw new Error('DISCORD_BOT_TOKEN manquant');
+  const response = await fetch(`https://discord.com/api/v10/guilds/${DISCORD_BADGE_GUILD_ID}/members/${encodeURIComponent(discordId)}`, {
+    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+  });
+  if (response.status === 404) return false;
+  if (!response.ok) throw new Error(`Discord a répondu HTTP ${response.status}`);
+  return true;
+}
+
 const app = express();
 const server = http.createServer(app);
 app.set('trust proxy', 1);
@@ -80,10 +119,17 @@ const FTS_CACHE_DIR = process.env.DB_CACHE_DIR || (fs.existsSync('/data') ? '/da
 const FTS_DB_PATH = process.env.DB_LOCAL_PATH || path.join(FTS_CACHE_DIR, 'fts_index.sqlite');
 const FTS_PART_PATH = `${FTS_DB_PATH}.part`;
 let ftsDownloadPromise = null;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'xploit0dev@gmail.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Dryzer09';
-const ADMIN_VERIFICATION_EMAIL = process.env.ADMIN_VERIFICATION_EMAIL || 'dryzer0dev@gmail.com';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32 || !ADMIN_JWT_SECRET || ADMIN_JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET et ADMIN_JWT_SECRET doivent être configurés avec des secrets aléatoires d’au moins 32 caractères');
+}
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_VERIFICATION_EMAIL = process.env.ADMIN_VERIFICATION_EMAIL;
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_VERIFICATION_EMAIL) {
+  throw new Error('ADMIN_EMAIL, ADMIN_PASSWORD et ADMIN_VERIFICATION_EMAIL sont obligatoires');
+}
 const ADMIN_VERIFICATION_EXPIRY_MS = Number(process.env.ADMIN_VERIFICATION_EXPIRY_MS || 10 * 60 * 1000);
 const UNLIMITED_SEARCH_EMAILS = new Set(['slyre6w@gmail.com', 'hugo.almeida11@icloud.com']);
 const PAYMENT_CHECKOUT_URL = process.env.PAYMENT_CHECKOUT_URL || process.env.PAYSAFE_CHECKOUT_URL || '';
@@ -299,6 +345,7 @@ app.use((req, res, next) => {
 });
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || (fs.existsSync('/data') ? '/data/uploads' : path.join(__dirname, '..', 'uploads'));
+const BUNDLED_UPLOADS_DIR = path.join(__dirname, 'uploads');
 const LEGACY_UPLOADS_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
 app.use('/uploads', (req, res, next) => {
@@ -316,6 +363,13 @@ app.use(
 );
 app.use(
   '/uploads',
+  express.static(BUNDLED_UPLOADS_DIR, {
+    acceptRanges: true,
+    maxAge: '7d'
+  })
+);
+app.use(
+  '/uploads',
   express.static(LEGACY_UPLOADS_DIR, {
     acceptRanges: true,
     maxAge: '7d'
@@ -324,7 +378,7 @@ app.use(
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const token = getCookie(req, AUTH_COOKIE);
     if (!token) {
       return res.status(401).json({ error: 'Token manquant' });
     }
@@ -1312,12 +1366,11 @@ function getRequestInfo(req) {
 
 function adminTokenMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = getCookie(req, ADMIN_COOKIE);
+    if (!token) {
       return res.status(401).json({ error: 'Token admin manquant' });
     }
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
     if (!decoded || decoded.role !== 'admin') {
       return res.status(403).json({ error: 'Accès admin refusé' });
     }
@@ -1385,7 +1438,7 @@ async function verifyAdminCode(email, password, code) {
 
   const token = jwt.sign(
     { role: 'admin', email: ADMIN_EMAIL },
-    JWT_SECRET,
+    ADMIN_JWT_SECRET,
     { expiresIn: '30m' }
   );
 
@@ -1497,10 +1550,11 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    setAuthCookie(res, AUTH_COOKIE, token);
+
     const quota = getQuotaInfo(user);
     res.json({
       message: 'Connexion réussie',
-      token,
       user: {
         id: user._id,
         email: user.email,
@@ -1540,6 +1594,11 @@ app.get('/api/auth/verify', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/auth/logout', (req, res) => {
+  clearAuthCookie(res, AUTH_COOKIE);
+  res.json({ success: true });
+});
+
 app.get('/api/auth/quota', authMiddleware, async (req, res) => {
   try {
     const quota = getQuotaInfo(req.user);
@@ -1571,6 +1630,38 @@ app.get('/api/developer/docs', async (req, res) => {
     authentication: 'Authorization: Bearer YOUR_API_KEY',
     endpoints: getDocumentationForPlan(plan)
   });
+});
+
+app.post('/api/developer/key', authMiddleware, async (req, res) => {
+  if (String(req.user?.email || '').toLowerCase() !== 'slyre6w@gmail.com') {
+    return res.status(403).json({ error: 'owner_only' });
+  }
+
+  const requestedPlan = normalizePlan(req.body?.plan || 'entreprise');
+  const plan = PLAN_POLICY[requestedPlan] ? requestedPlan : 'entreprise';
+  const key = `sk_${plan}_${crypto.randomBytes(24).toString('base64url')}`;
+  registerRuntimeKey(key, {
+    name: `owner-${plan}`,
+    plan,
+    requestsPerDay: Number.MAX_SAFE_INTEGER
+  });
+  req.user.publicProfile = req.user.publicProfile || {};
+  let accountChanged = false;
+  if (req.user.accountType !== plan) {
+    req.user.accountType = plan;
+    accountChanged = true;
+  }
+  if (plan !== 'free' && !req.user.publicProfile.badges?.some((badge) => badge.id === 'premium')) {
+    req.user.publicProfile.badges = [
+      ...(req.user.publicProfile.badges || []),
+      { id: 'premium', label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png' }
+    ];
+    accountChanged = true;
+  }
+  if (accountChanged) {
+    await req.user.save();
+  }
+  res.status(201).json({ key, plan, requestsPerDay: Number.MAX_SAFE_INTEGER });
 });
 
 app.get('/api/enterprise/capabilities', authMiddleware, requirePlan('enterprise'), (req, res) => {
@@ -1745,12 +1836,18 @@ app.post('/api/admin/request-verification', async (req, res) => {
   }
 });
 
+app.post('/api/admin/logout', (req, res) => {
+  clearAuthCookie(res, ADMIN_COOKIE);
+  res.json({ success: true });
+});
+
 app.post('/api/admin/verify-code', async (req, res) => {
   try {
     const { email, password, code } = req.body;
     const token = await verifyAdminCode(email, password, code);
     const requestInfo = getRequestInfo(req);
-    res.json({ token, requestInfo });
+    setAuthCookie(res, ADMIN_COOKIE, token, 30 * 60);
+    res.json({ requestInfo });
   } catch (error) {
     console.error('Admin verify code error:', error);
     res.status(401).json({ error: error.message || 'Code invalide' });
@@ -1968,6 +2065,36 @@ app.put('/api/admin/user/:id/set-plan', adminTokenMiddleware, async (req, res) =
   }
 });
 
+app.put('/api/admin/user/:id/bug-report/:reportId', adminTokenMiddleware, async (req, res) => {
+  try {
+    const status = ['pending', 'approved', 'rejected'].includes(req.body?.status)
+      ? req.body.status
+      : null;
+    if (!status) return res.status(400).json({ error: 'Statut invalide.' });
+    const user = await User.findById(req.params.id);
+    const report = user?.publicProfile?.bugReports?.id(req.params.reportId);
+    if (!report) return res.status(404).json({ error: 'Signalement introuvable.' });
+    report.status = status;
+    user.publicProfile.badges = user.publicProfile.badges || [];
+    const bugHunterIndex = user.publicProfile.badges.findIndex((badge) => badge.id === 'bugHunter');
+    if (status === 'approved' && bugHunterIndex === -1) {
+      user.publicProfile.badges.push({
+        id: 'bugHunter',
+        label: 'BUG Hunter',
+        image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png'
+      });
+    }
+    if (status === 'rejected' && bugHunterIndex !== -1) {
+      user.publicProfile.badges.splice(bugHunterIndex, 1);
+    }
+    await user.save();
+    return res.json({ message: `Signalement ${status}.`, user });
+  } catch (error) {
+    console.error('Admin bug report error:', error);
+    return res.status(500).json({ error: 'Erreur de validation du signalement.' });
+  }
+});
+
 app.put('/api/admin/user/:id/ban', adminTokenMiddleware, async (req, res) => {
   try {
     const { isBanned, reason } = req.body;
@@ -2036,9 +2163,28 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
     }
 
     if (publicProfile && typeof publicProfile === 'object') {
+      const profilePatch = { ...publicProfile };
+      if (Array.isArray(profilePatch.badges)) {
+        const badgeAssets = {
+          bugHunter: { label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png' },
+          qlf: { label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png' },
+          eternal: { label: 'Éternel', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/eternal.png' },
+          premium: { label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png' },
+          verified: { label: 'Verified', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png' },
+          leet: { label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png' }
+        };
+        const requestedBadgeIds = new Set(profilePatch.badges.map((badge) => typeof badge === 'string' ? badge : badge.id));
+        const allowedBadgeIds = new Set(['qlf', 'eternal', 'leet', 'bugHunter']);
+        if (user.accountType !== 'free') allowedBadgeIds.add('premium');
+        if (user.publicProfile?.verifiedBadge) allowedBadgeIds.add('verified');
+        profilePatch.badges = [...requestedBadgeIds]
+          .filter((id) => allowedBadgeIds.has(id))
+          .map((badge) => typeof badge === 'string' ? { id: badge, ...badgeAssets[badge] } : badge)
+          .filter((badge) => badge.id && badgeAssets[badge.id]);
+      }
       user.publicProfile = {
         ...user.publicProfile?.toObject?.() ?? user.publicProfile ?? {},
-        ...publicProfile
+        ...profilePatch
       };
 
       if (user.publicProfile.backgroundUrl && !user.publicProfile.backgroundType) {
@@ -2055,6 +2201,95 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Erreur mise à jour profil:', error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
+  }
+});
+
+app.post('/api/auth/bug-reports', authMiddleware, async (req, res) => {
+  try {
+    const title = String(req.body.title || '').trim();
+    const url = String(req.body.url || '').trim();
+    if (title.length < 8) return res.status(400).json({ error: 'Décris le bug en au moins 8 caractères.' });
+
+    await User.findByIdAndUpdate(req.user._id, {
+      $push: { 'publicProfile.bugReports': { title: title.slice(0, 300), url: url.slice(0, 500), status: 'pending' } }
+    });
+    return res.status(201).json({ message: 'Signalement envoyé pour vérification.' });
+  } catch (error) {
+    console.error('Erreur signalement BUG Hunter:', error);
+    return res.status(500).json({ error: 'Impossible d’envoyer le signalement.' });
+  }
+});
+
+app.post('/api/auth/discord-badge', authMiddleware, async (req, res) => {
+  try {
+    const discordId = String(req.body.discordId || '').trim();
+    if (!/^\d{15,22}$/.test(discordId)) return res.status(400).json({ error: 'ID Discord invalide.' });
+    if (!DISCORD_BOT_TOKEN) {
+      return res.status(503).json({ error: 'Vérification Discord non configurée sur le serveur.' });
+    }
+    const member = await isDiscordGuildMember(discordId);
+    if (!member) return res.status(403).json({ error: 'Cet ID Discord ne fait pas partie du serveur requis.' });
+
+    req.user.publicProfile.discordId = discordId;
+    req.user.publicProfile.discordBadgeVerified = true;
+    req.user.publicProfile.badges = req.user.publicProfile.badges || [];
+    if (!req.user.publicProfile.badges?.some((badge) => badge.id === 'leet')) {
+      req.user.publicProfile.badges.push({
+        id: 'leet',
+        label: '1337',
+        image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png'
+      });
+    }
+    await req.user.save();
+    return res.json({ success: true, message: 'Badge 1337 activé.' });
+  } catch (error) {
+    console.error('Erreur vérification Discord:', error);
+    return res.status(502).json({ error: 'Vérification Discord indisponible.' });
+  }
+});
+
+app.post('/api/auth/verified-badge/request', authMiddleware, async (req, res) => {
+  try {
+    if (!emailTransporter) {
+      return res.status(503).json({ error: 'Envoi email non configuré sur le serveur.' });
+    }
+    const code = generateVerificationCode();
+    req.user.badgeVerificationCode = code;
+    req.user.badgeVerificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await req.user.save();
+    await sendBadgeVerificationEmail(req.user.email, code);
+    return res.json({ success: true, message: 'Code envoyé à ton adresse email.' });
+  } catch (error) {
+    console.error('Erreur envoi code badge Verified:', error);
+    return res.status(500).json({ error: 'Impossible d’envoyer le code.' });
+  }
+});
+
+app.post('/api/auth/verified-badge/confirm', authMiddleware, async (req, res) => {
+  try {
+    const code = String(req.body.code || '').trim();
+    if (!code || !req.user.badgeVerificationCode || req.user.badgeVerificationCode !== code) {
+      return res.status(400).json({ error: 'Code invalide.' });
+    }
+    if (!req.user.badgeVerificationExpiresAt || req.user.badgeVerificationExpiresAt.getTime() < Date.now()) {
+      return res.status(400).json({ error: 'Code expiré.' });
+    }
+    req.user.publicProfile.verifiedBadge = true;
+    req.user.publicProfile.badges = req.user.publicProfile.badges || [];
+    if (!req.user.publicProfile.badges?.some((badge) => badge.id === 'verified')) {
+      req.user.publicProfile.badges.push({
+        id: 'verified',
+        label: 'Verified',
+        image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png'
+      });
+    }
+    req.user.badgeVerificationCode = undefined;
+    req.user.badgeVerificationExpiresAt = undefined;
+    await req.user.save();
+    return res.json({ success: true, message: 'Badge Verified activé.' });
+  } catch (error) {
+    console.error('Erreur confirmation badge Verified:', error);
+    return res.status(500).json({ error: 'Impossible d’activer le badge.' });
   }
 });
 
@@ -2077,10 +2312,10 @@ app.post('/api/auth/verify-email', async (req, res) => {
         JWT_SECRET,
         { expiresIn: '7d' }
       );
+      setAuthCookie(res, AUTH_COOKIE, token);
 
       return res.json({
         message: 'Email déjà vérifié',
-        token,
         user: {
           id: user._id,
           email: user.email,
@@ -2113,10 +2348,10 @@ app.post('/api/auth/verify-email', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+    setAuthCookie(res, AUTH_COOKIE, token);
 
     res.json({
       message: 'Email vérifié avec succès',
-      token,
       user: {
         id: user._id,
         email: user.email,
@@ -2527,17 +2762,18 @@ app.get('/api/blacksanta/victims/:logId/manifest', async (req, res) => {
   }
 });
 
-app.get('/api/blacksanta/victims/:logId/files/:fileId', async (req, res) => {
+app.get('/api/blacksanta/victims/:logId/files/:fileId(*)', async (req, res) => {
   try {
     const { logId, fileId } = req.params;
-    if (!logId || !fileId) return res.status(400).json({ error: 'logId et fileId requis' });
+    const safeFileId = fileId ? decodeURIComponent(fileId) : '';
+    if (!logId || !safeFileId) return res.status(400).json({ error: 'logId et fileId requis' });
     if (!LOOKUP2BZ_API_KEY) {
       return res.status(500).json({ error: 'LOOKUP2BZ_API_KEY non configurée' });
     }
 
     const url = new URL('/api/v1/oathnet/victim/file', LOOKUP2BZ_BASE_URL);
     url.searchParams.set('logid', logId);
-    url.searchParams.set('fileid', fileId);
+    url.searchParams.set('fileid', safeFileId);
     url.searchParams.set('apikey', LOOKUP2BZ_API_KEY);
 
     const response = await fetch(url, {
@@ -2852,7 +3088,7 @@ app.post('/api/domain/intel', authMiddleware, async (req, res) => {
                 slug: user.slug || user.username || `user-${idx + 1}`,
                 url: user.link || `https://${normalized}/author/${user.slug || user.username || idx + 1}/`,
                 avatar: user.avatar_urls?.['96'] || user.avatar_urls?.['48'] || `https://secure.gravatar.com/avatar/?s=96&d=mp`,
-                description: 'Profil WordPress réel détecté',
+                description: 'Profil WordPress',
               }));
               intel.wordpressUsers = userProfiles;
               userProfiles.forEach((profile) => intel.users.add(profile.username));

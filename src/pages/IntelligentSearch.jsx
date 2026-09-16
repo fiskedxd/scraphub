@@ -655,10 +655,8 @@ const IntelligenceSearch = () => {
   const callHolehe = async (identifier) => {
     try {
       if (!identifier) return null;
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers.Authorization = `Bearer ${token}`;
-      const resp = await fetch('/api/osint/holehe', { method: 'POST', headers, body: JSON.stringify({ identifier }) });
+      const resp = await fetch('/api/osint/holehe', { method: 'POST', headers, credentials: 'include', body: JSON.stringify({ identifier }) });
       if (!resp.ok) {
         const txt = await resp.text().catch(() => '');
         throw new Error(txt || 'holehe request failed');
@@ -820,14 +818,11 @@ const IntelligenceSearch = () => {
     if (!exactQuery) return [];
     
     try {
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
       const response = await fetch('/api/sqlite/search', {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify({ 
           query: exactQuery, 
           exactMatch: false,
@@ -847,14 +842,11 @@ const IntelligenceSearch = () => {
   const searchFreeFts = async (queryText) => {
     if (!queryText || queryText.trim().length < 2) return [];
     try {
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
       const response = await fetch('/api/sqlite/search', {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify({ query: queryText.trim(), exactMatch: false, limit: 200 })
       });
       const data = await response.json();

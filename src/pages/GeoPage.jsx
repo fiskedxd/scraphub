@@ -148,15 +148,8 @@ const GeoIntPage = () => {
   };
 
   const fetchQuota = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setQuota(null);
-      return;
-    }
     try {
-      const response = await fetch('/api/auth/quota', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetch('/api/auth/quota', { credentials: 'include' });
       const data = await response.json();
       if (response.ok) {
         setQuota(data);
@@ -270,12 +263,9 @@ const GeoIntPage = () => {
 
       setAnalysisProgress({ step: 'preprocessing', progress: 25 });
 
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/geoint/analyze', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
+        credentials: 'include',
         body: formData
       });
 

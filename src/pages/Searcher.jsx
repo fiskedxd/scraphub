@@ -823,9 +823,7 @@ const Searcher = () => {
     try {
       if (!user) throw new Error('Connecte-toi pour utiliser les recherches.');
       
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers.Authorization = `Bearer ${token}`;
       
       let dbResults = [];
       if (dbQuery) {

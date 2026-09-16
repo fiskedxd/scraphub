@@ -14,10 +14,7 @@ const ChatPage = () => {
   const screenVideoRef = useRef(null);
   
   
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem('chat_messages');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -27,20 +24,13 @@ const ChatPage = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [gifPanelOpen, setGifPanelOpen] = useState(false);
   const [gifSearchQuery, setGifSearchQuery] = useState('');
-  const [gifFavorites, setGifFavorites] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('chat_gif_favorites') || '[]');
-    } catch (err) {
-      return [];
-    }
-  });
+  const [gifFavorites, setGifFavorites] = useState([]);
   const [screenSharing, setScreenSharing] = useState(false);
   const [screenStream, setScreenStream] = useState(null);
   const [screenShareError, setScreenShareError] = useState('');
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return {};
   };
   
   
@@ -51,11 +41,6 @@ const ChatPage = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [soundboardOpen, setSoundboardOpen] = useState(false);
   const [activeSound, setActiveSound] = useState(null);
-  
-  
-  useEffect(() => {
-    localStorage.setItem('chat_messages', JSON.stringify(messages));
-  }, [messages]);
   
   
   useEffect(() => {
@@ -85,14 +70,6 @@ const ChatPage = () => {
       }
     };
   }, [localStream, screenStream]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('chat_gif_favorites', JSON.stringify(gifFavorites));
-    } catch (err) {
-      console.warn('Impossible de sauvegarder les favoris GIF', err);
-    }
-  }, [gifFavorites]);
 
   useEffect(() => {
     if (localVideoRef.current) {

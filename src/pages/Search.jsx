@@ -1718,15 +1718,8 @@ const SearchPage = () => {
   };
 
   const fetchQuota = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setQuota(null);
-      return;
-    }
     try {
-      const response = await fetch('/api/auth/quota', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetch('/api/auth/quota', { credentials: 'include' });
       const data = await response.json();
       if (response.ok) {
         setQuota(data);
@@ -1759,10 +1752,8 @@ const SearchPage = () => {
   const checkHIBP = async (email) => {
     if (!email) return null;
     try {
-      const token = localStorage.getItem('token');
       const headers = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-      const resp = await fetch(`/api/hibp/account/${encodeURIComponent(email)}`, { headers });
+      const resp = await fetch(`/api/hibp/account/${encodeURIComponent(email)}`, { headers, credentials: 'include' });
       const json = await resp.json().catch(() => ({}));
       const breaches = Array.isArray(json.breaches) ? json.breaches : (json.breaches === null ? [] : json.breaches || []);
       return {
@@ -2568,9 +2559,7 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
     }
     
     try {
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers.Authorization = `Bearer ${token}`;
 
       const response = await fetch('/api/sqlite/search', {
         method: 'POST',
@@ -2718,9 +2707,7 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
     }
     
     try {
-      const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers.Authorization = `Bearer ${token}`;
 
       const response = await fetch('/api/domain/intel', {
         method: 'POST',
@@ -3964,10 +3951,8 @@ if (searchType === 'discord') {
     const computePhoneIds = async (phone) => {
       try {
         if (!phone) return null;
-        const token = localStorage.getItem('token');
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers.Authorization = `Bearer ${token}`;
-        const resp = await fetch('/api/phone/id', { method: 'POST', headers, body: JSON.stringify({ phone }) });
+        const resp = await fetch('/api/phone/id', { method: 'POST', headers, credentials: 'include', body: JSON.stringify({ phone }) });
         const j = await resp.json();
         if (!resp.ok) throw new Error(j.error || 'phone id error');
         setPhoneId(j.hmac);
@@ -4012,9 +3997,7 @@ if (searchType === 'discord') {
       try {
         setIsSearchingAddresses(true);
         setAddressSearchResults([]);
-        const token = localStorage.getItem('token');
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers.Authorization = `Bearer ${token}`;
 
         const candidates = (geo.nearby || []).slice(0, 4);
         const aggregated = new Map();

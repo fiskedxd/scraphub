@@ -17,9 +17,9 @@ const BugReportPage = () => {
       const response = await fetch('/api/auth/bug-reports', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ title, url })
       });
       const data = await response.json();

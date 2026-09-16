@@ -16,7 +16,7 @@ const AdminPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
-  const [adminToken, setAdminToken] = useState(localStorage.getItem('admin_token'));
+  const [adminToken, setAdminToken] = useState(true);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [adminInfo, setAdminInfo] = useState(null);
@@ -41,11 +41,7 @@ const AdminPage = () => {
   }, [adminToken]);
 
   const headers = () => {
-    const h = { 'Content-Type': 'application/json' };
-    if (adminToken) {
-      h.Authorization = `Bearer ${adminToken}`;
-    }
-    return h;
+    return { 'Content-Type': 'application/json' };
   };
 
   const handleRequestVerification = async () => {
@@ -95,8 +91,7 @@ const AdminPage = () => {
       if (!response.ok) {
         throw new Error(data.error || 'Code invalide');
       }
-      localStorage.setItem('admin_token', data.token);
-      setAdminToken(data.token);
+      setAdminToken(true);
       setAdminInfo(data.requestInfo || null);
       setMessage('Accès admin validé. Bienvenue.');
       setError('');
@@ -121,7 +116,7 @@ const AdminPage = () => {
     } catch (err) {
       setError(err.message);
       setAdminToken(null);
-      localStorage.removeItem('admin_token');
+      setAdminToken(false);
     }
   };
 
@@ -295,8 +290,12 @@ const AdminPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {
+      console.error('Erreur lors de la déconnexion admin:', err);
+    }
     setAdminToken(null);
     setAdminInfo(null);
     setUsers([]);
