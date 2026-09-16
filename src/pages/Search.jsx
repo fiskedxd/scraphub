@@ -1647,6 +1647,7 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState(null);
+  const [voiceResults, setVoiceResults] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedConversationData, setSelectedConversationData] = useState(null);
@@ -2771,6 +2772,20 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
       return { success: false, error: error.message };
     }
   };
+
+  const searchVoiceDatabase = async (query) => {
+    const trimmed = String(query || '').trim();
+    if (trimmed.length < 2) return { success: false, error: 'Entrez au moins 2 caractères.' };
+
+    try {
+      const response = await fetch(`/api/voice-db/search?q=${encodeURIComponent(trimmed)}`, { credentials: 'include' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Recherche vocale impossible');
+      return data;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
   
   const isVillettiQuery = () => {
     const normalizedQuery = searchQuery.toLowerCase();
@@ -2850,7 +2865,7 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
       setResults({ error: 'Veuillez entrer un terme de recherche ou un ID cible' });
       return;
     }
-    if ((searchType === 'data' || searchType === 'domain') && !hasQuery && !hasAdvanced) {
+    if ((searchType === 'data' || searchType === 'domain' || searchType === 'voice') && !hasQuery && !hasAdvanced) {
       setResults({ error: 'Veuillez entrer un terme de recherche ou activer les filtres avancés' });
       return;
     }
@@ -2874,6 +2889,7 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
     
     setIsSearching(true);
     setResults(null);
+    setVoiceResults(null);
     setSelectedConversation(null);
     setSelectedConversationData(null);
     setShowGraph(false);
@@ -2966,6 +2982,9 @@ if (searchType === 'discord') {
         if (settings.autoEnrich && pseudoRecords.length > 0) {
           setTimeout(() => runEnrichmentPipeline(profile, pseudoRecords), 500);
         }
+      } else if (searchType === 'voice') {
+        result = await searchVoiceDatabase(searchQuery);
+        setVoiceResults(result);
       } else if (searchType === 'domain') {
         result = await searchDomainIntelligence(searchQuery);
       } else {
@@ -4910,6 +4929,44 @@ if (searchType === 'discord') {
       </div>
     );
   };
+
+  const VoiceResultsPanel = () => {
+    if (searchType !== 'voice' || !voiceResults) return null;
+    if (!voiceResults.success) {
+      return <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/5 p-5 text-sm text-red-200">{voiceResults.error}</div>;
+    }
+
+    return (
+      <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-500/20 bg-black shadow-2xl shadow-black/40">
+        <div className="border-b border-cyan-500/15 bg-cyan-500/5 p-5">
+          <h3 className="text-sm font-semibold text-cyan-100">Vocaux trouvés</h3>
+          <p className="mt-1 text-xs text-white/45">{voiceResults.totalMatches} fichier(s) pour « {voiceResults.query} »</p>
+        </div>
+        <div className="space-y-4 p-5">
+          {voiceResults.groups?.map((group) => (
+            <section key={`${group.person}-${group.platform}`} className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-semibold text-white/90">{group.person}</h4>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-200/55">{group.platform}</p>
+                </div>
+                <span className="text-xs text-white/40">{group.files.length} fichier(s)</span>
+              </div>
+              <div className="space-y-3">
+                {group.files.map((file) => (
+                  <div key={file.url} className="rounded-lg border border-white/[0.06] bg-black/50 p-3">
+                    <div className="mb-2 truncate font-mono text-[11px] text-white/55" title={file.filename}>{file.filename}</div>
+                    <audio controls preload="none" className="h-9 w-full" src={file.url} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+          {!voiceResults.groups?.length && <p className="text-sm text-white/45">Aucun vocal trouvé.</p>}
+        </div>
+      </div>
+    );
+  };
   
   return (
     <div className="relative min-h-screen w-full bg-black text-white overflow-hidden">
@@ -4945,6 +5002,7 @@ if (searchType === 'discord') {
           <button onClick={() => { setSearchType('discord'); setResults(null); setSelectedConversation(null); setShowSettings(false); setShowGraph(false); setSelectedRecord(null); setIdentityProfile(null); setRelationshipGraph(null); setEnrichedResults(null); setFamilyGroups(null); setDomainIntelligence(null); setTechnologies(null); setVulnerabilities(null); setVictimManifest(null); setVictimLogId(null); setSelectedVictimFile(null); }} className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${searchType === 'discord' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>Discord</button>
           <button onClick={() => { setSearchType('data'); setResults(null); setSelectedConversation(null); setShowSettings(false); setShowGraph(false); setSelectedRecord(null); setIdentityProfile(null); setRelationshipGraph(null); setEnrichedResults(null); setFamilyGroups(null); setDomainIntelligence(null); setTechnologies(null); setVulnerabilities(null); setVictimManifest(null); setVictimLogId(null); setSelectedVictimFile(null); }} className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${searchType === 'data' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>Data Leak</button>
           <button onClick={() => { setSearchType('domain'); setResults(null); setSelectedConversation(null); setShowSettings(false); setShowGraph(false); setSelectedRecord(null); setIdentityProfile(null); setRelationshipGraph(null); setEnrichedResults(null); setFamilyGroups(null); setDomainIntelligence(null); setTechnologies(null); setVulnerabilities(null); setVictimManifest(null); setVictimLogId(null); setSelectedVictimFile(null); }} className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${searchType === 'domain' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>Domaine</button>
+          <button onClick={() => { setSearchType('voice'); setResults(null); setVoiceResults(null); setSelectedConversation(null); setShowSettings(false); setShowGraph(false); setSelectedRecord(null); }} className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${searchType === 'voice' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>Vocaux</button>
         </div>
         
         <div className="bg-black rounded-2xl border border-white/[0.08] p-6 mb-8">
@@ -4956,7 +5014,7 @@ if (searchType === 'discord') {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder={searchType === 'discord' ? 'Email, pseudo, ID Discord, mot-clé...' : searchType === 'domain' ? 'ex: google.com, github.com, netflix.com' : searchType === 'blacksanta' ? 'Recherche unifiée Blacksanta...' : 'Nom, prénom, email, téléphone, ville...'}
+              placeholder={searchType === 'discord' ? 'Email, pseudo, ID Discord, mot-clé...' : searchType === 'domain' ? 'ex: google.com, github.com, netflix.com' : searchType === 'voice' ? 'Pseudo, ID Discord, plateforme...' : searchType === 'blacksanta' ? 'Recherche unifiée Blacksanta...' : 'Nom, prénom, email, téléphone, ville...'}
               className="w-full rounded-xl border border-white/[0.08] bg-black px-5 py-3 font-mono text-sm text-white placeholder-white/20 focus:border-white/20 focus:outline-none"
             />
             </div>
@@ -5054,6 +5112,7 @@ if (searchType === 'discord') {
         <OsintPanel />
         <IntelxPanel />
         <VulnScanPanel />
+        <VoiceResultsPanel />
 
         {breachProgress && breachProgress.percent !== undefined && (
           <div className="mb-6 bg-black/50 backdrop-blur-xl rounded-2xl border border-white/[0.08] p-6">

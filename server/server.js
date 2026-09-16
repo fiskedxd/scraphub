@@ -62,6 +62,46 @@ const clearAuthCookie = (res, name) => {
   res.append('Set-Cookie', `${name}=; Max-Age=0; ${cookieOptions}`);
 };
 
+const voiceDatabaseRoots = [
+  ...(process.env.VOICE_DB_DIR ? [path.resolve(process.env.VOICE_DB_DIR)] : []),
+  path.join(__dirname, '..', 'public', 'vocdb'),
+  path.join(__dirname, 'vocdb')
+];
+const voiceExtensions = new Set(['.ogg', '.mp3', '.wav', '.m4a', '.webm']);
+let voiceDatabaseCache = { loadedAt: 0, records: [] };
+
+const loadVoiceDatabase = () => {
+  const now = Date.now();
+  if (now - voiceDatabaseCache.loadedAt < 60000) return voiceDatabaseCache.records;
+
+  const records = [];
+  for (const root of voiceDatabaseRoots) {
+    if (!fs.existsSync(root)) continue;
+    for (const personEntry of fs.readdirSync(root, { withFileTypes: true })) {
+      if (!personEntry.isDirectory()) continue;
+      const personPath = path.join(root, personEntry.name);
+      for (const platformEntry of fs.readdirSync(personPath, { withFileTypes: true })) {
+        if (!platformEntry.isDirectory()) continue;
+        const platformPath = path.join(personPath, platformEntry.name);
+        for (const fileEntry of fs.readdirSync(platformPath, { withFileTypes: true })) {
+          if (!fileEntry.isFile() || !voiceExtensions.has(path.extname(fileEntry.name).toLowerCase())) continue;
+          const filePath = path.join(platformPath, fileEntry.name);
+          records.push({
+            person: personEntry.name,
+            platform: platformEntry.name,
+            filename: fileEntry.name,
+            relativePath: path.relative(root, filePath).split(path.sep).join('/'),
+            url: `/api/voice-db/audio?file=${encodeURIComponent(path.relative(root, filePath).split(path.sep).join('/'))}`
+          });
+        }
+      }
+    }
+  }
+
+  voiceDatabaseCache = { loadedAt: now, records };
+  return records;
+};
+
 const sendVerificationEmail = async (email, code) => {
   if (!emailTransporter) {
     throw new Error('SMTP email transporteur non configuré');
@@ -410,6 +450,52 @@ const authMiddleware = async (req, res, next) => {
     return res.status(401).json({ error: 'Token invalide' });
   }
 };
+
+app.get('/api/voice-db/search', authMiddleware, (req, res) => {
+  const query = String(req.query.q || '').trim().toLowerCase();
+  if (query.length < 2) {
+    return res.status(400).json({ error: 'Entrez au moins 2 caractères.' });
+  }
+
+  const matches = loadVoiceDatabase()
+    .filter((entry) => `${entry.person} ${entry.platform} ${entry.filename}`.toLowerCase().includes(query))
+    .slice(0, 300);
+
+  const groups = new Map();
+  matches.forEach((entry) => {
+    const key = `${entry.person}\u0000${entry.platform}`;
+    if (!groups.has(key)) {
+      groups.set(key, { person: entry.person, platform: entry.platform, files: [] });
+    }
+    groups.get(key).files.push({ filename: entry.filename, url: entry.url });
+  });
+
+  res.json({
+    success: true,
+    query,
+    totalMatches: matches.length,
+    groups: Array.from(groups.values())
+  });
+});
+
+app.get('/api/voice-db/audio', authMiddleware, (req, res) => {
+  const requestedFile = String(req.query.file || '');
+  if (!requestedFile || requestedFile.includes('\0')) {
+    return res.status(400).json({ error: 'Fichier audio invalide.' });
+  }
+
+  for (const root of voiceDatabaseRoots) {
+    const rootPath = path.resolve(root);
+    const filePath = path.resolve(rootPath, requestedFile);
+    if (!filePath.startsWith(`${rootPath}${path.sep}`)) continue;
+    if (!voiceExtensions.has(path.extname(filePath).toLowerCase())) continue;
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return res.sendFile(filePath);
+    }
+  }
+
+  return res.status(404).json({ error: 'Fichier audio introuvable.' });
+});
 
 const BRIXHUB_API_KEY = 'brix_7I_VfE4_FCxJJAjfcB_pufsKQj1h67I8ngTYXTbVD9P6PsiE';
 const BLACKSANTA_API_KEY = process.env.BLACKSANTA_API_KEY || '';
