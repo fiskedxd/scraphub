@@ -4935,6 +4935,9 @@ if (searchType === 'discord') {
     if (!voiceResults.success) {
       return <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/5 p-5 text-sm text-red-200">{voiceResults.error}</div>;
     }
+    if (!voiceResults.dataAvailable) {
+      return <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 text-sm text-amber-100">La base vocale n'est pas montée sur le backend. Configure `VOICE_DB_DIR` vers le dossier `vocdb` autorisé, puis redémarre le service.</div>;
+    }
 
     return (
       <div className="mb-6 overflow-hidden rounded-2xl border border-cyan-500/20 bg-black shadow-2xl shadow-black/40">
@@ -5018,7 +5021,9 @@ if (searchType === 'discord') {
               className="w-full rounded-xl border border-white/[0.08] bg-black px-5 py-3 font-mono text-sm text-white placeholder-white/20 focus:border-white/20 focus:outline-none"
             />
             </div>
-            <button onClick={() => setShowSettings(!showSettings)} className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${showSettings ? 'bg-white/10 border-white/20 text-white' : 'bg-black border-white/[0.08] text-white/60 hover:text-white/80'}`}>{Icons.settings}</button>
+            {searchType !== 'voice' && (
+              <button onClick={() => setShowSettings(!showSettings)} className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${showSettings ? 'bg-white/10 border-white/20 text-white' : 'bg-black border-white/[0.08] text-white/60 hover:text-white/80'}`}>{Icons.settings}</button>
+            )}
           </div>
           
           {showSettings && (

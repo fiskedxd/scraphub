@@ -69,6 +69,11 @@ const voiceDatabaseRoots = [
 ];
 const voiceExtensions = new Set(['.ogg', '.mp3', '.wav', '.m4a', '.webm']);
 let voiceDatabaseCache = { loadedAt: 0, records: [] };
+const normalizeVoiceSearch = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim();
 
 const loadVoiceDatabase = () => {
   const now = Date.now();
@@ -452,13 +457,14 @@ const authMiddleware = async (req, res, next) => {
 };
 
 app.get('/api/voice-db/search', authMiddleware, (req, res) => {
-  const query = String(req.query.q || '').trim().toLowerCase();
+  const query = normalizeVoiceSearch(req.query.q);
   if (query.length < 2) {
     return res.status(400).json({ error: 'Entrez au moins 2 caractères.' });
   }
 
-  const matches = loadVoiceDatabase()
-    .filter((entry) => `${entry.person} ${entry.platform} ${entry.filename}`.toLowerCase().includes(query))
+  const allVoiceRecords = loadVoiceDatabase();
+  const matches = allVoiceRecords
+    .filter((entry) => normalizeVoiceSearch(`${entry.person} ${entry.platform} ${entry.filename}`).includes(query))
     .slice(0, 300);
 
   const groups = new Map();
@@ -473,6 +479,7 @@ app.get('/api/voice-db/search', authMiddleware, (req, res) => {
   res.json({
     success: true,
     query,
+    dataAvailable: allVoiceRecords.length > 0,
     totalMatches: matches.length,
     groups: Array.from(groups.values())
   });
