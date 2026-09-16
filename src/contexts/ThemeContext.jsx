@@ -2,6 +2,20 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
+const DEFAULT_ACCENT_COLOR = '#38bdf8';
+const VALID_THEMES = new Set(['dark', 'light', 'white']);
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+const getStoredTheme = () => {
+  const saved = localStorage.getItem('theme');
+  return VALID_THEMES.has(saved) ? saved : 'dark';
+};
+
+const getStoredAccentColor = () => {
+  const saved = localStorage.getItem('accentColor');
+  return HEX_COLOR_PATTERN.test(saved || '') ? saved : DEFAULT_ACCENT_COLOR;
+};
+
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -11,13 +25,8 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved || 'dark';
-  });
-  const [accentColor, setAccentColor] = useState(() => {
-    return localStorage.getItem('accentColor') || '#38bdf8';
-  });
+  const [theme, setTheme] = useState(getStoredTheme);
+  const [accentColor, setAccentColorState] = useState(getStoredAccentColor);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -31,7 +40,11 @@ export const ThemeProvider = ({ children }) => {
   }, [accentColor]);
 
   const toggleTheme = (newTheme) => {
-    setTheme(newTheme);
+    if (VALID_THEMES.has(newTheme)) setTheme(newTheme);
+  };
+
+  const setAccentColor = (newColor) => {
+    if (HEX_COLOR_PATTERN.test(newColor)) setAccentColorState(newColor);
   };
 
   const value = {

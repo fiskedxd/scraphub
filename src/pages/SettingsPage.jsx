@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SettingsPage = () => {
   const { user, updateUser } = useAuth();
-  const { theme, toggleTheme, isDark, isLight, isWhite } = useTheme();
+  const { theme, toggleTheme, accentColor, setAccentColor, isDark, isLight, isWhite } = useTheme();
   const gridRef = useRef(null);
   
   
@@ -43,6 +43,7 @@ const SettingsPage = () => {
   
   const [preferences, setPreferences] = useState({
     theme: theme,
+    accentColor: accentColor,
     notifications: {
       email: true,
       push: false,
@@ -182,6 +183,7 @@ const SettingsPage = () => {
     try {
       
       toggleTheme(preferences.theme);
+      setAccentColor(preferences.accentColor);
       setSuccessMessage('Préférences mises à jour avec succès');
     } catch (err) {
       setErrorMessage('Erreur lors de la mise à jour des préférences');
@@ -701,6 +703,23 @@ const SettingsPage = () => {
                           <span className="text-xs font-medium">Blanc Brillant</span>
                         </div>
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] p-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-white/80">Couleur d'accent</h4>
+                      <p className="text-xs text-white/40">Personnalise la couleur principale de l'interface.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={preferences.accentColor}
+                        onChange={(event) => setPreferences((prev) => ({ ...prev, accentColor: event.target.value }))}
+                        className="h-10 w-14 cursor-pointer rounded-lg border border-white/10 bg-transparent p-1"
+                        aria-label="Couleur d'accent"
+                      />
+                      <span className="font-mono text-xs text-white/50">{preferences.accentColor}</span>
                     </div>
                   </div>
 
