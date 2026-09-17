@@ -5464,8 +5464,9 @@ if (searchType === 'discord') {
                 const text = JSON.stringify(data).toLowerCase();
 
                 const serviceId = String(data.service_id || '').toLowerCase();
+                const serviceLabel = String(data.service_label || '').toLowerCase();
 
-                if (serviceId === 'oathnet') {
+                if (serviceId === 'oathnet' || serviceId === 'oathnet-holehe' || serviceLabel === 'holehe') {
                   return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/70' };
                 }
 
@@ -5527,6 +5528,9 @@ if (searchType === 'discord') {
               const renderCard = (record, idx) => {
                 const data = record.parsedData || record;
                 const cat = getCategory(record);
+                const serviceId = String(data.service_id || '').toLowerCase();
+                const serviceLabel = String(data.service_label || '').toLowerCase();
+                const isHolehe = serviceId === 'oathnet-holehe' || serviceLabel === 'holehe';
               
                 // Extraction intelligente des champs
                 const fields = {
@@ -5607,6 +5611,45 @@ if (searchType === 'discord') {
                 let title = String(fields.nom_complet || `${fields.prenom} ${fields.nom}`.trim() || 
                             fields.email || fields.username || fields.url || fields.log_id || 
                             fields.id_psp || `Entrée ${idx + 1}`);
+
+                if (isHolehe) {
+                  const email = fields.email || data.query || data.searchTerm || data.identifier || '';
+                  const platform = data.url || data.domain || data.platform || data.website || 'Plateforme détectée';
+                  const identifiers = Object.entries(data)
+                    .filter(([key, value]) => !['email', 'url', 'domain', 'platform', 'website', 'service_id', 'service_label'].includes(key) && value !== null && value !== undefined && value !== '')
+                    .slice(0, 8);
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => setApiDetailItem(data)}
+                      className="cursor-pointer rounded-lg border border-white/[0.10] bg-black p-3 transition hover:border-cyan-300/30 hover:bg-white/[0.025]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-mono text-sm text-white/90">{email || title}</div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
+                            <span className="text-cyan-200/80">{platform}</span>
+                            <span>•</span>
+                            <span>{data.service_label || 'Holehe'}</span>
+                            <span>•</span>
+                            <span className="font-mono">{data.service_id || 'oathnet-holehe'}</span>
+                          </div>
+                        </div>
+                        <span className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/45">Breach</span>
+                      </div>
+                      {identifiers.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {identifiers.map(([key, value]) => (
+                            <span key={key} className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[10px] text-white/55">
+                              {key}: <span className="text-white/80">{formatApiValue(value)}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
               
                 // Construction du sous-titre - comme dans l'exemple
                 const parts = [];
