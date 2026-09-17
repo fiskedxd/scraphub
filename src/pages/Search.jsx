@@ -685,6 +685,7 @@ const DOMAS_SEARCH_ALIASES = [
   'rue de la renarde',
   'rue de lizere'
 ];
+const BLOCKED_DISCORD_ID = '1507104814008635694';
 
 const isBlockedDomasSearch = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
@@ -695,6 +696,8 @@ const isBlockedDomasSearch = (value) => {
     return normalized.includes(aliasLower) || aliasLower.includes(normalized);
   });
 };
+
+const isBlockedDiscordSearch = (value) => String(value || '').includes(BLOCKED_DISCORD_ID);
 
 const flattenVictimText = (value, result = []) => {
   if (value === null || value === undefined) return result;
@@ -2875,6 +2878,17 @@ const findMessagesWithContext = async (searchTerm, contextSize = 10) => {
         blocked: true,
         blockedArt: villettiBanArt,
         blockedMessage: 'INVALID SEARCH',
+        searchTerm: searchQuery || settings.targetId,
+        success: false,
+        results: []
+      });
+      return;
+    }
+
+    if (searchType === 'discord' && (isBlockedDiscordSearch(searchQuery) || isBlockedDiscordSearch(settings.targetId))) {
+      setResults({
+        blocked: true,
+        blockedMessage: 'ACCÈS REFUSÉ',
         searchTerm: searchQuery || settings.targetId,
         success: false,
         results: []

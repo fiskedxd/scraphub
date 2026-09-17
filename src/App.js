@@ -24,6 +24,28 @@ import PlansPage from './pages/Plans';
 import ApiDocsPage from './pages/ApiDocs';
 import BugReportPage from './pages/BugReport';
 
+const DISPLAY_REDACTIONS = [
+  { pattern: /xploit0dev@gmail\.com/gi, replacement: '0000000000@gmail.com' }
+];
+
+const redactVisibleText = (root) => {
+  if (!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  let node;
+  while ((node = walker.nextNode())) textNodes.push(node);
+
+  textNodes.forEach((textNode) => {
+    const parent = textNode.parentElement;
+    if (!parent || ['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA', 'SELECT'].includes(parent.tagName)) return;
+    let text = textNode.nodeValue;
+    DISPLAY_REDACTIONS.forEach(({ pattern, replacement }) => {
+      text = text.replace(pattern, replacement);
+    });
+    if (text !== textNode.nodeValue) textNode.nodeValue = text;
+  });
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -46,6 +68,13 @@ function AppContent() {
     for (let i = 0; i < 500; i += 1) {
       console.warn(`%c${warning}`, 'font-size: 18px; color: orange; background: black; padding: 6px;');
     }
+  }, []);
+
+  useEffect(() => {
+    redactVisibleText(document.body);
+    const observer = new MutationObserver(() => redactVisibleText(document.body));
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
   }, []);
 
   if (isBanned) {
