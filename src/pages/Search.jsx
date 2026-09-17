@@ -18,6 +18,7 @@ const ETHEREUM_ADDR_REGEX = /0x[a-fA-F0-9]{40}/g;
 const USERNAME_KEYS = [/username/i, /pseudo/i, /login/i, /user/i, /screen_name/i, /nickname/i, /name/i];
 const PASSWORD_KEYS = [/password/i, /pwd/i, /passphrase/i, /motdepasse/i, /mdp/i, /hashed_password/i, /secret/i];
 const FAMILY_KEYS = [/pere/i, /mere/i, /frere/i, /soeur/i, /parent/i, /famille/i, /conjoint/i, /epoux/i, /epouse/i, /enfant/i, /fils/i, /fille/i, /tuteur/i, /tutrice/i];
+const redactDisplayText = (value) => String(value ?? '').replace(/xploit0dev@gmail\.com/gi, '0000000000@gmail.com');
 
 const getGlobalBlackSantaState = () => {
   if (typeof window === 'undefined') return null;
@@ -3538,7 +3539,7 @@ if (searchType === 'discord') {
                 <h4 className="text-[10px] uppercase text-white/40 mb-2">Emails ({profile.emailsList.length})</h4>
                 <div className="flex flex-wrap gap-1">
                   {profile.emailsList.slice(0, 8).map((e, i) => (
-                    <span key={i} className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-300">{e.value} <span className="text-blue-400/50">({e.count})</span></span>
+                    <span key={i} className="text-xs bg-blue-500/10 px-2 py-0.5 rounded text-blue-300">{redactDisplayText(e.value)} <span className="text-blue-400/50">({e.count})</span></span>
                   ))}
                 </div>
               </div>
@@ -5272,10 +5273,10 @@ if (searchType === 'discord') {
                 <div key={idx} className="text-left p-3 rounded-xl border border-white/[0.06] bg-black hover:bg-white/[0.08] transition">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <span className="text-sm font-medium text-white truncate">{email}</span>
+                      <span className="text-sm font-medium text-white truncate">{redactDisplayText(email)}</span>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <button onClick={(e) => { e.preventDefault(); handleCopy(email, e); }} className="text-[10px] text-white/40">Copier</button>
+                      <button onClick={(e) => { e.preventDefault(); handleCopy(redactDisplayText(email), e); }} className="text-[10px] text-white/40">Copier</button>
                     </div>
                   </div>
                 </div>
