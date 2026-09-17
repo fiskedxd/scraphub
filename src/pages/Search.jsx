@@ -5006,44 +5006,81 @@ if (searchType === 'discord') {
             onTimeUpdate={updateProgress}
             onEnded={() => { setIsPlaying(false); setProgress(0); }}
           />
-          <div className="flex items-center gap-3 px-3 py-3">
-            <button
-              type="button"
-              onClick={togglePlayback}
-              aria-label={isPlaying ? 'Pause' : 'Lire'}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-300/10 text-cyan-200 transition hover:bg-cyan-300/20"
-            >
-              {isPlaying ? '||' : '▶'}
-            </button>
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 flex items-center justify-between gap-3 text-[10px] font-mono text-white/35">
-                <span className="truncate">{file.filename}</span>
-                <span className="shrink-0">{formatAudioTime(progress)} / {formatAudioTime(duration)}</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max={duration || 0}
-                step="0.01"
-                value={Math.min(progress, duration || 0)}
-                onChange={seekAudio}
-                className="voice-range w-full"
-                aria-label="Progression audio"
-              />
-            </div>
-            <span className="hidden text-xs text-white/35 sm:inline">VOL</span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={updateVolume}
-              className="voice-range hidden w-16 sm:block"
-              aria-label="Volume audio"
-            />
-            <a href={file.url} download className="text-xs text-white/35 transition hover:text-cyan-200" title="Télécharger le vocal">↓</a>
-          </div>
+<div className="flex items-center gap-3 rounded-lg bg-[#1e1f22] px-3 py-3">
+  <button
+    type="button"
+    onClick={togglePlayback}
+    aria-label={isPlaying ? 'Pause' : 'Lire'}
+    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:scale-105 hover:bg-white/90"
+  >
+    {isPlaying ? (
+      <Pause size={15} fill="currentColor" />
+    ) : (
+      <Play size={15} fill="currentColor" />
+    )}
+  </button>
+
+  <div className="min-w-0 flex-1">
+    <div className="mb-1.5 flex items-center gap-2">
+      <span className="min-w-0 flex-1 truncate text-[11px] text-white/60">
+        {file.filename}
+      </span>
+
+      <span className="shrink-0 font-mono text-[10px] tabular-nums text-white/35">
+        {formatAudioTime(progress)}
+        <span className="mx-1 text-white/20">/</span>
+        {formatAudioTime(duration)}
+      </span>
+    </div>
+
+    <input
+      type="range"
+      min="0"
+      max={duration || 0}
+      step="0.01"
+      value={Math.min(progress, duration || 0)}
+      onChange={seekAudio}
+      className="voice-range w-full"
+      aria-label="Progression audio"
+    />
+  </div>
+
+  <div className="group relative hidden sm:flex">
+    <button
+      type="button"
+      className="flex h-8 w-8 items-center justify-center rounded-md text-white/40 transition hover:bg-white/10 hover:text-white"
+      aria-label="Volume"
+    >
+      {volume === 0 ? (
+        <VolumeX size={17} />
+      ) : (
+        <Volume2 size={17} />
+      )}
+    </button>
+
+    <div className="absolute bottom-full right-0 mb-2 hidden h-28 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-[#111214] p-2 shadow-2xl group-hover:flex">
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={volume}
+        onChange={updateVolume}
+        className="voice-volume"
+        aria-label="Volume audio"
+      />
+    </div>
+  </div>
+
+  <a
+    href={file.url}
+    download
+    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white/35 transition hover:bg-white/10 hover:text-white"
+    title="Télécharger le vocal"
+  >
+    <Download size={16} />
+  </a>
+</div>
         </div>
       );
     };
