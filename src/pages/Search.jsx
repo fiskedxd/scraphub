@@ -5640,8 +5640,6 @@ if (searchType === 'discord') {
                             <span className="text-cyan-200/80">{platform}</span>
                             <span>•</span>
                             <span>Holehe</span>
-                            <span>•</span>
-                            <span className="font-mono">oathnet-holehe</span>
                           </div>
                         </div>
                         <span className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/45">Breach</span>
@@ -5796,11 +5794,11 @@ if (searchType === 'discord') {
                   'pays', 'age', 'years_old', 'age_years', 'sexe', 'gender', 'sex', 'genre', 'log_id', 'id', 'archive_hash',
                   'hash', 'pwned_at', 'indexed_at', 'username', 'pseudo', 'login', 'user', 'screen_name', 'password',
                   'pwd', 'pass', 'passphrase', 'secret', 'url', 'website', 'domain', 'source_url', 'source', 'provider',
-                  'category', 'api_name'
+                  'category', 'api_name', 'service_id', 'service_label'
                 ]);
                 Object.entries(data).forEach(([key, value]) => {
                   if (displayedKeys.has(key) || value === null || value === undefined || value === '') return;
-                  const formattedValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                  const formattedValue = (typeof value === 'object' ? JSON.stringify(value) : String(value)).replace(/oathnet/gi, 'ScrapHub');
                   if (formattedValue) extra.push({ label: key, value: formattedValue });
                 });
               
