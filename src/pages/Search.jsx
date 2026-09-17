@@ -5616,7 +5616,11 @@ if (searchType === 'discord') {
                   const email = fields.email || data.query || data.searchTerm || data.identifier || '';
                   const platform = data.url || data.domain || data.platform || data.website || 'Plateforme détectée';
                   const identifiers = Object.entries(data)
-                    .filter(([key, value]) => !['email', 'url', 'domain', 'platform', 'website', 'service_id', 'service_label'].includes(key) && value !== null && value !== undefined && value !== '')
+                    .filter(([key, value]) => ![
+                      'email', 'url', 'domain', 'platform', 'website',
+                      'service_id', 'service_label', 'category', 'source',
+                      'provider', 'api_name', 'source_label'
+                    ].includes(key) && value !== null && value !== undefined && value !== '')
                     .slice(0, 8);
 
                   return (
@@ -5631,9 +5635,9 @@ if (searchType === 'discord') {
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
                             <span className="text-cyan-200/80">{platform}</span>
                             <span>•</span>
-                            <span>{data.service_label || 'Holehe'}</span>
+                            <span>Holehe</span>
                             <span>•</span>
-                            <span className="font-mono">{data.service_id || 'oathnet-holehe'}</span>
+                            <span className="font-mono">oathnet-holehe</span>
                           </div>
                         </div>
                         <span className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/45">Breach</span>
