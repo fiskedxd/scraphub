@@ -13,12 +13,12 @@ const gradientPresets = {
 };
 
 const badgeOptions = [
-  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/bughunter.png', requirement: 'Disponible pour tous' },
-  { id: 'qlf', label: 'QLF', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
-  { id: 'eternal', label: 'Eternel', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/eternal.png', requirement: 'Badge communautaire' },
-  { id: 'premium', label: 'Premium', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/prenium.png', requirement: 'Plan payant' },
-  { id: 'verified', label: 'Verified', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/verified.png', requirement: 'Email verifie' },
-  { id: 'leet', label: '1337', image: 'https://scraphub-web-backend.fly.dev/uploads/badges/1337.png', requirement: 'Disponible pour tous' }
+  { id: 'bugHunter', label: 'BUG Hunter', image: 'https://api.scraphub.org/uploads/badges/bughunter.png', requirement: 'Disponible pour tous' },
+  { id: 'qlf', label: 'QLF', image: 'https://api.scraphub.org/uploads/badges/qlf.png', requirement: 'Badge communautaire' },
+  { id: 'eternal', label: 'Eternel', image: 'https://api.scraphub.org/uploads/badges/eternal.png', requirement: 'Badge communautaire' },
+  { id: 'premium', label: 'Premium', image: 'https://api.scraphub.org/uploads/badges/prenium.png', requirement: 'Plan payant' },
+  { id: 'verified', label: 'Verified', image: 'https://api.scraphub.org/uploads/badges/verified.png', requirement: 'Email verifie' },
+  { id: 'leet', label: '1337', image: 'https://api.scraphub.org/uploads/badges/1337.png', requirement: 'Disponible pour tous' }
 ];
 
 const ProfilePage = () => {
@@ -221,7 +221,7 @@ const ProfilePage = () => {
         const xhr = new XMLHttpRequest();
         const apiOrigin =
           process.env.REACT_APP_API_URL ||
-          (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://scraphub-web-backend.fly.dev');
+          (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : (process.env.REACT_APP_API_URL || 'https://api.scraphub.org'))
         xhr.open('POST', `${apiOrigin}/api/upload/profile`);
         xhr.timeout = 0;
         xhr.withCredentials = true;
