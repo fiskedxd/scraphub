@@ -33,6 +33,10 @@ const AdminPage = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [recordSearch, setRecordSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, bannedUsers: 0, bannedIps: 0 });
+  const [ipBans, setIpBans] = useState([]);
+  const [ipToBan, setIpToBan] = useState('');
+  const [ipBanReason, setIpBanReason] = useState('');
 
   useEffect(() => {
     if (adminToken) {
@@ -111,13 +115,56 @@ const AdminPage = () => {
         throw new Error(data.error || 'Impossible de charger les infos admin');
       }
       setAdminInfo(data.requestInfo || null);
-      
+      fetchStats();
+      fetchIpBans();
       fetchUsers();
     } catch (err) {
       setError(err.message);
       setAdminToken(null);
       setAdminToken(false);
     }
+  };
+
+  const fetchStats = async () => {
+    const response = await fetch('/api/admin/stats', { headers: headers() });
+    if (response.ok) setStats((await response.json()).stats);
+  };
+
+  const fetchIpBans = async () => {
+    const response = await fetch('/api/admin/ip-bans', { headers: headers() });
+    if (response.ok) setIpBans((await response.json()).bans || []);
+  };
+
+  const exportUserHistory = async () => {
+    if (!selectedUser) return;
+    const response = await fetch(`/api/admin/user/${selectedUser._id}/export`, { headers: headers() });
+    if (!response.ok) {
+      setError('Export utilisateur impossible.');
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `scraphub-user-${selectedUser._id}-export.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const banIp = async () => {
+    if (!ipToBan.trim()) return;
+    const response = await fetch('/api/admin/ip-bans', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ ip: ipToBan.trim(), reason: ipBanReason.trim() })
+    });
+    const data = await response.json();
+    if (!response.ok) return setError(data.error || 'Bannissement IP impossible.');
+    setIpToBan(''); setIpBanReason(''); setMessage('IP bannie.'); fetchIpBans(); fetchStats();
+  };
+
+  const unbanIp = async (ip) => {
+    await fetch(`/api/admin/ip-bans/${encodeURIComponent(ip)}`, { method: 'DELETE', headers: headers() });
+    fetchIpBans(); fetchStats();
   };
 
   const fetchUsers = async () => {
@@ -358,6 +405,15 @@ const AdminPage = () => {
         {message && <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-4 text-green-300">{message}</div>}
         {error && <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-4 text-red-300">{error}</div>}
 
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[['Utilisateurs', stats.totalUsers], ['Actifs', stats.activeUsers], ['Comptes bannis', stats.bannedUsers], ['IPs bannies', stats.bannedIps]].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-white/35">{label}</div>
+              <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
+            </div>
+          ))}
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-6">
             <div className="bg-white/5 border border-white/[0.08] rounded-3xl p-6">
@@ -375,7 +431,7 @@ const AdminPage = () => {
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold">Recherche utilisateurs</h2>
                 <div className="flex gap-2">
-                  <button onClick={fetchUsers} className="rounded-2xl bg-violet-600 px-4 py-2 text-sm font-semibold hover:bg-violet-500 transition">Chercher</button>
+                  <button onClick={fetchUsers} className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">Chercher</button>
                   <button onClick={() => { setSearchQuery(''); fetchUsers(); }} className="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold hover:bg-white/10 transition">Afficher tout</button>
                 </div>
               </div>
@@ -393,8 +449,8 @@ const AdminPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-1 rounded-full bg-white/5 text-xs">{u.accountType || 'free'}</span>
-                        <button onClick={() => loadUserDetails(u._id)} className="rounded-full bg-white/10 px-3 py-1 text-xs hover:bg-white/15">Détails</button>
-                        <button onClick={() => quickUpdateUser(u._id, { isBanned: true, banReason: 'Bannissement rapide depuis la liste' })} className="rounded-full bg-red-600 px-3 py-1 text-xs hover:bg-red-500">Bannir</button>
+                          <button onClick={() => loadUserDetails(u._id)} className="rounded-full bg-white/10 px-3 py-1 text-xs hover:bg-white/15">Détails</button>
+                          <button onClick={() => quickUpdateUser(u._id, { isBanned: true, banReason: 'Bannissement rapide depuis la liste' })} className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-xs text-red-200 hover:bg-red-400/20">Bannir</button>
                         <button onClick={() => handleResetPassword(u._id)} className="rounded-full bg-yellow-600 px-3 py-1 text-xs hover:bg-yellow-500">Réinit PW</button>
                       </div>
                     </div>
@@ -419,6 +475,30 @@ const AdminPage = () => {
                     </div>
                     <p className="mt-3 text-xs text-white/50 line-clamp-3 break-words">{row.content}</p>
                     <div className="mt-2 text-xs text-white/30">Source: {row.source}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/[0.08] rounded-3xl p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold">Blocage IP</h2>
+                  <p className="mt-1 text-xs text-white/40">Les IP bannies sont refusées sur les routes authentifiées.</p>
+                </div>
+                <button onClick={fetchIpBans} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/60 hover:bg-white/10">Actualiser</button>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <input value={ipToBan} onChange={(e) => setIpToBan(e.target.value)} placeholder="Adresse IP" className="rounded-xl border border-white/[0.12] bg-black/40 px-3 py-2 text-sm text-white outline-none" />
+                <input value={ipBanReason} onChange={(e) => setIpBanReason(e.target.value)} placeholder="Raison" className="rounded-xl border border-white/[0.12] bg-black/40 px-3 py-2 text-sm text-white outline-none" />
+                <button onClick={banIp} className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-400/20">Bannir IP</button>
+              </div>
+              <div className="mt-4 space-y-2">
+                {ipBans.length === 0 && <div className="text-sm text-white/30">Aucune IP bannie.</div>}
+                {ipBans.map((ban) => (
+                  <div key={ban.ip} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2 text-sm">
+                    <div><span className="font-mono text-white/80">{ban.ip}</span><span className="ml-3 text-xs text-white/40">{ban.reason}</span></div>
+                    <button onClick={() => unbanIp(ban.ip)} className="text-xs text-cyan-200 hover:text-white">Débannir</button>
                   </div>
                 ))}
               </div>
@@ -454,9 +534,9 @@ const AdminPage = () => {
                     <div className="flex justify-between gap-3 mt-2">
                       <span>Dernière IP enregistrée</span>
                       <span>
-                        {selectedUser.lastLoginIp ? (
+                        {selectedUser.security?.lastLoginIp || selectedUser.lastLoginIp ? (
                           <>
-                            {!showFullIp ? selectedUser.lastLoginIp.replace(/(\d+\.\d+)\.\d+\.\d+/, '$1.*.*') : selectedUser.lastLoginIp}
+                            {!showFullIp ? (selectedUser.security?.lastLoginIp || selectedUser.lastLoginIp).replace(/(\d+\.\d+)\.\d+\.\d+/, '$1.*.*') : (selectedUser.security?.lastLoginIp || selectedUser.lastLoginIp)}
                             <button onClick={() => setShowFullIp(!showFullIp)} className="ml-2 text-xs text-white/40 hover:text-white">{showFullIp ? 'Masquer' : 'Afficher IP'}</button>
                           </>
                         ) : '–'}
@@ -489,6 +569,7 @@ const AdminPage = () => {
                       </div>
                     )}
                     <div className="space-y-2">
+                      <button onClick={exportUserHistory} className="w-full rounded-2xl border border-cyan-300/20 bg-cyan-300/10 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/20 transition">Télécharger l’historique disponible</button>
                       <label className="text-xs uppercase tracking-wider text-white/50">Modifier le plan</label>
                       <select value={userPlan} onChange={(e) => setUserPlan(e.target.value)} className="w-full rounded-2xl border border-white/[0.12] bg-black/40 px-4 py-3 text-white outline-none">
                         {planOptions.map((opt) => (

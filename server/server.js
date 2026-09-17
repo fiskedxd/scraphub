@@ -21,6 +21,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const User = require('./models/User');
 const ChatMessage = require('./models/ChatMessage');
+const BannedIP = require('./models/BannedIP');
 const PaymentTransaction = require('./models/PaymentTransaction');
 const spotifyRouter = require('./routes/spotify');
 const { PLAN_POLICY, getPlanPolicy, serializePlanPolicy } = require('./planPolicy');
@@ -423,6 +424,11 @@ app.use(
 
 const authMiddleware = async (req, res, next) => {
   try {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '';
+    const bannedIp = clientIp ? await BannedIP.findOne({ ip: clientIp }).lean() : null;
+    if (bannedIp && (!bannedIp.expiresAt || new Date(bannedIp.expiresAt) > new Date())) {
+      return res.status(403).json({ error: 'ip_banned', message: 'Cette adresse IP est bannie.' });
+    }
     const token = getCookie(req, AUTH_COOKIE);
     if (!token) {
       return res.status(401).json({ error: 'Token manquant' });
@@ -1603,6 +1609,11 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
+    const loginIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '';
+    const bannedIp = loginIp ? await BannedIP.findOne({ ip: loginIp }).lean() : null;
+    if (bannedIp && (!bannedIp.expiresAt || new Date(bannedIp.expiresAt) > new Date())) {
+      return res.status(403).json({ error: 'ip_banned', message: 'Cette adresse IP est bannie.' });
+    }
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -1636,6 +1647,13 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     }
+
+    user.security = user.security || {};
+    user.security.lastLoginIp = loginIp;
+    user.security.lastLoginAt = new Date();
+    user.security.ipAddresses = Array.from(new Set([...(user.security.ipAddresses || []), loginIp].filter(Boolean))).slice(-20);
+    user.lastLogin = new Date();
+    await user.save();
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -1977,7 +1995,12 @@ app.get('/api/admin/users', adminTokenMiddleware, async (req, res) => {
     let query = User.find(filter).select('-password').lean();
     if (!returnAll && !emailQuery) query = query.limit(100);
     const users = await query.exec();
-    res.json({ users });
+    const [totalUsers, bannedUsers, activeUsers] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ 'security.accountBan.isBanned': true }),
+      User.countDocuments({ isActive: true })
+    ]);
+    res.json({ users, stats: { totalUsers, bannedUsers, activeUsers } });
   } catch (error) {
     console.error('Admin users error:', error);
     res.status(500).json({ error: 'Impossible de récupérer les utilisateurs' });
@@ -1995,6 +2018,58 @@ app.get('/api/admin/user/:id', adminTokenMiddleware, async (req, res) => {
     console.error('Admin user detail error:', error);
     res.status(500).json({ error: 'Impossible de récupérer l’utilisateur' });
   }
+});
+
+app.get('/api/admin/user/:id/export', adminTokenMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password -integrations.spotify.accessToken -integrations.spotify.refreshToken -publicProfile.music.file').lean();
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    const messages = await ChatMessage.find({ $or: [{ userMongoId: user._id.toString() }, { userId: user.email }] }).select('-__v').lean();
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      user,
+      availableActivity: { chatMessages: messages }
+    };
+    const filename = `scraphub-user-${String(user._id)}-export.json`;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(JSON.stringify(payload, null, 2));
+  } catch (error) {
+    console.error('Admin user export error:', error);
+    res.status(500).json({ error: 'Export utilisateur impossible' });
+  }
+});
+
+app.get('/api/admin/stats', adminTokenMiddleware, async (req, res) => {
+  try {
+    const [totalUsers, activeUsers, bannedUsers, bannedIps] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ isActive: true }),
+      User.countDocuments({ 'security.accountBan.isBanned': true }),
+      BannedIP.countDocuments()
+    ]);
+    res.json({ stats: { totalUsers, activeUsers, bannedUsers, bannedIps } });
+  } catch (error) {
+    res.status(500).json({ error: 'Statistiques indisponibles' });
+  }
+});
+
+app.get('/api/admin/ip-bans', adminTokenMiddleware, async (req, res) => {
+  const bans = await BannedIP.find().sort({ bannedAt: -1 }).limit(200).lean();
+  res.json({ bans });
+});
+
+app.post('/api/admin/ip-bans', adminTokenMiddleware, async (req, res) => {
+  const ip = String(req.body?.ip || '').trim();
+  const reason = String(req.body?.reason || 'Bannissement admin').slice(0, 300);
+  if (!ip || ip.length > 64 || /[^a-fA-F0-9:.]/.test(ip)) return res.status(400).json({ error: 'Adresse IP invalide' });
+  const ban = await BannedIP.findOneAndUpdate({ ip }, { ip, reason, bannedBy: ADMIN_EMAIL, bannedAt: new Date() }, { upsert: true, new: true, setDefaultsOnInsert: true }).lean();
+  res.json({ ban });
+});
+
+app.delete('/api/admin/ip-bans/:ip', adminTokenMiddleware, async (req, res) => {
+  await BannedIP.deleteOne({ ip: req.params.ip });
+  res.json({ success: true });
 });
 
 app.put('/api/admin/user/:id', adminTokenMiddleware, async (req, res) => {
