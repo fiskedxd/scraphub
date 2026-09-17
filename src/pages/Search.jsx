@@ -8,6 +8,14 @@ import 'reactflow/dist/style.css';
 import Mita3D from '../components/Mita3D';
 import { useAuth } from '../contexts/AuthContext';
 
+import {
+  Download,
+  Pause,
+  Play,
+  Volume2,
+  VolumeX
+} from 'lucide-react'
+
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const PHONE_REGEX = /(?:\+33|0)[1-9](?:\d{8}|\d{2}\s\d{2}\s\d{2}\s\d{2}|\d{2}.\d{2}.\d{2}.\d{2})/g;
 const URL_REGEX = /https?:\/\/[^\s'"]+/g;
