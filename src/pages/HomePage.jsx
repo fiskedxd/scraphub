@@ -342,7 +342,7 @@ const HomePage = () => {
                   <div className="relative flex items-center gap-3 px-4 pt-4 pb-2">
                     <div className="relative">
                       <img 
-                        src="https://cdn.discordapp.com/icons/1523797318376231022/f62ebb8a79a3832c01bb859fdcc33237.webp?size=80" 
+                        src="https://cdn.discordapp.com/icons/1523797318376231022/bd6949f04102cf9a659b181f88c10467.webp?size=80&quality=lossless" 
                         alt="Scraphub" 
                         className="h-12 w-12 rounded-xl border border-white/10 object-cover shadow-lg"
                       />
