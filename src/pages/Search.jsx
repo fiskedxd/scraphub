@@ -5466,7 +5466,11 @@ if (searchType === 'discord') {
                 const serviceId = String(data.service_id || '').toLowerCase();
                 const serviceLabel = String(data.service_label || '').toLowerCase();
 
-                if (serviceId === 'oathnet' || serviceId === 'oathnet-holehe' || serviceLabel === 'holehe') {
+                if (serviceId === 'oathnet-holehe' || serviceLabel === 'holehe') {
+                  return { type: 'holehe', label: 'ScrapHub • Holehe', icon: Icons.search, color: 'border-cyan-300/20 bg-black', iconColor: 'text-cyan-200/80' };
+                }
+
+                if (serviceId === 'oathnet') {
                   return { type: 'breach', label: 'ScrapHub • Breach', icon: Icons.breach, color: 'border-white/[0.12] bg-black', iconColor: 'text-white/70' };
                 }
 
@@ -5873,22 +5877,22 @@ if (searchType === 'discord') {
                 );
               };
             
-              const renderGroups = (sectionTitle, sectionTypes, sectionIcon) => {
+              const renderGroups = (sectionTitle, sectionTypes, sectionIcon, compact = false) => {
                 const sectionGroups = sectionTypes
                   .map((catType) => grouped[catType])
                   .filter((group) => group && group.records.length > 0);
                 if (sectionGroups.length === 0) return null;
 
                 return (
-                  <section className="mb-8 rounded-2xl border border-white/[0.08] bg-black p-4 sm:p-5">
+                  <section className={`${compact ? 'mb-4 p-3' : 'mb-8 p-4 sm:p-5'} rounded-2xl border border-white/[0.08] bg-black`}>
                     <div className="mb-4 flex items-center gap-3 border-b border-white/[0.08] pb-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.04] text-white/70 ring-1 ring-white/[0.08]">{sectionIcon}</span>
-                      <h2 className="text-base font-semibold text-white">{sectionTitle}</h2>
+                      <h2 className={`${compact ? 'text-sm' : 'text-base'} font-semibold text-white`}>{sectionTitle}</h2>
                       <span className="text-xs text-white/35">
                         {sectionGroups.reduce((total, group) => total + group.records.length, 0)} entrées
                       </span>
                     </div>
-                    <div className="space-y-6">
+                    <div className={compact ? 'space-y-3' : 'space-y-6'}>
                       {sectionGroups.map((group) => {
                         const groupHeader = (
                           <div className="mb-3 flex items-center gap-2">
@@ -5922,7 +5926,10 @@ if (searchType === 'discord') {
               return (
                 <>
                   {renderGroups('Résultats API', ['intelx', 'api'], Icons.shield)}
-                  {renderGroups('Résultats Breach', ['breach'], Icons.breach)}
+                  <div className="grid items-start gap-4 lg:grid-cols-[minmax(220px,0.7fr)_minmax(0,2fr)]">
+                    {renderGroups('Holehe', ['holehe'], Icons.search, true)}
+                    {renderGroups('Résultats Breach', ['breach'], Icons.breach)}
+                  </div>
                   {renderGroups('Résultats logs', ['stealer'], Icons.file)}
                   {renderGroups('Résultats locaux', ['local', 'other'], Icons.database)}
                 </>
